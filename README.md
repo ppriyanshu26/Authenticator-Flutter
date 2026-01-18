@@ -1,4 +1,4 @@
-# cipherauth
+# CipherAuth
 
 CipherAuth is a secure, cross-platform, local TOTP authenticator applications designed for simplicity and security.
 

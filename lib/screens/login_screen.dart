@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
+import '../utils/runtime_key.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -22,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    RuntimeKey.rawPassword = controller.text;
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -31,26 +33,22 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  AppBar _appBar(BuildContext context) {
-    return AppBar(
-      title: const Text('Login'),
-      actions: [
-        IconButton(
-          icon: Icon(
-            Theme.of(context).brightness == Brightness.dark
-                ? Icons.wb_sunny
-                : Icons.nightlight_round,
-          ),
-          onPressed: widget.onToggleTheme,
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _appBar(context),
+      appBar: AppBar(
+        title: const Text('Login'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.wb_sunny
+                  : Icons.nightlight_round,
+            ),
+            onPressed: widget.onToggleTheme,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

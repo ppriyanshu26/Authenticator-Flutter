@@ -111,11 +111,13 @@ class AddAccountScreenState extends State<AddAccountScreen>
     final added = await TotpStore.add(platform, url);
 
     if (!added) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account already exists')),
       );
       return;
     }
+
 
     if (!mounted) return;
     Navigator.pop(context, true);

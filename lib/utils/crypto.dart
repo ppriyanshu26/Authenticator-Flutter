@@ -1,67 +1,47 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:cryptography/cryptography.dart';
+import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:cryptography/cryptography.dart';
 import 'runtime_key.dart';
 
 class Crypto {
-  static final aes = AesGcm.with256bits();
-
   static Future<String> encryptAes(String plaintext) async {
-    final encrypted = await encryptBytes(utf8.encode(plaintext));
-    return base64UrlEncode(encrypted);
-  }
-
-  static Future<String> decryptAes(String ciphertext) async {
-    final data = base64Url.decode(ciphertext);
-    final decrypted = await decryptBytes(data);
-    return utf8.decode(decrypted);
-  }
-
-  static Future<List<int>> encryptBytes(List<int> data) async {
-    final raw = RuntimeKey.rawPassword;
-    if (raw == null) {
-      throw Exception('Master key not in memory');
-    }
-
-    final keyBytes = sha256.convert(utf8.encode(raw)).bytes;
-    final secretKey = SecretKey(keyBytes);
-
-    final nonce =
-    List<int>.generate(12, (_) => Random.secure().nextInt(256));
+    final key = sha256.convert(utf8.encode(RuntimeKey.rawPassword!)).bytes;
+    final nonce = _randomBytes(12);
+    final aes = AesGcm.with256bits();
+    final secretKey = SecretKey(key);
 
     final box = await aes.encrypt(
-      data,
+      utf8.encode(plaintext),
       secretKey: secretKey,
       nonce: nonce,
     );
 
-    return [
-      ...nonce,
-      ...box.cipherText,
-      ...box.mac.bytes,
-    ];
+    return base64UrlEncode(nonce + box.cipherText + box.mac.bytes);
   }
 
-  static Future<List<int>> decryptBytes(List<int> data) async {
-    final raw = RuntimeKey.rawPassword;
-    if (raw == null) {
-      throw Exception('Master key not in memory');
-    }
-
-    final keyBytes = sha256.convert(utf8.encode(raw)).bytes;
-    final secretKey = SecretKey(keyBytes);
-
+  static Future<String> decryptAes(String ciphertext) async {
+    final data = base64Url.decode(ciphertext);
     final nonce = data.sublist(0, 12);
+    final mac = Mac(data.sublist(data.length - 16));
     final cipherText = data.sublist(12, data.length - 16);
-    final tag = data.sublist(data.length - 16);
 
-    final box = SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: Mac(tag),
+    final key = sha256.convert(utf8.encode(RuntimeKey.rawPassword!)).bytes;
+    final aes = AesGcm.with256bits();
+    final secretKey = SecretKey(key);
+
+    final clear = await aes.decrypt(
+      SecretBox(cipherText, nonce: nonce, mac: mac),
+      secretKey: secretKey,
     );
 
-    return await aes.decrypt(box, secretKey: secretKey);
+    return utf8.decode(clear);
+  }
+
+  static Uint8List _randomBytes(int length) {
+    final rnd = Random.secure();
+    return Uint8List.fromList(
+        List.generate(length, (_) => rnd.nextInt(256)));
   }
 }

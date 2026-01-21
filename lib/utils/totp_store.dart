@@ -9,9 +9,7 @@ class TotpStore {
     final prefs = await SharedPreferences.getInstance();
     final encrypted = prefs.getString(storeKey);
 
-    if (encrypted == null || encrypted.isEmpty) {
-      return [];
-    }
+    if (encrypted == null || encrypted.isEmpty) return [];
 
     final decrypted = await Crypto.decryptAes(encrypted);
     final List<dynamic> decoded = jsonDecode(decrypted);

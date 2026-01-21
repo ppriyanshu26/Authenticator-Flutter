@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/totp_store.dart';
 import '../utils/totp.dart';
 import '../utils/storage.dart';
@@ -88,9 +89,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     final remaining = <Map<String, String>>[];
     for (int i = 0; i < totps.length; i++) {
-      if (!selected.contains(i)) {
-        remaining.add(totps[i]);
-      }
+      if (!selected.contains(i)) remaining.add(totps[i]);
     }
 
     await TotpStore.saveAll(remaining);
@@ -100,6 +99,47 @@ class HomeScreenState extends State<HomeScreen> {
       selected.clear();
       selectionMode = false;
     });
+  }
+
+  Future<void> showCiphertext() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('totp_store');
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Stored Ciphertext'),
+        content: SingleChildScrollView(
+          child: SelectableText(
+            raw ?? 'null',
+            style: const TextStyle(fontSize: 12),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              if (raw != null) {
+                Clipboard.setData(ClipboardData(text: raw));
+                HapticFeedback.lightImpact();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Ciphertext copied'),
+                    duration: Duration(seconds: 1),
+                  ),
+                );
+              }
+            },
+            child: const Text('Copy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget tile(int index, Map<String, String> item) {
@@ -222,11 +262,30 @@ class HomeScreenState extends State<HomeScreen> {
         itemCount: totps.length,
         itemBuilder: (_, i) => tile(i, totps[i]),
       ),
-      floatingActionButton: selectionMode
-          ? null
-          : FloatingActionButton(
-        onPressed: addAccount,
-        child: const Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            left: 32,
+            bottom: 0,
+            child: FloatingActionButton(
+              heroTag: 'debug',
+              mini: true,
+              onPressed: showCiphertext,
+              child: const Icon(Icons.code),
+            ),
+          ),
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: selectionMode
+                ? const SizedBox.shrink()
+                : FloatingActionButton(
+              heroTag: 'add',
+              onPressed: addAccount,
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: selectionMode
           ? BottomAppBar(

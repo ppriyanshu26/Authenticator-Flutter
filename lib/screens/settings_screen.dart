@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
 import 'reset_password_screen.dart';
+import 'sync_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -87,9 +88,13 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: ListTile(
               leading: const Icon(Icons.sync),
               title: const Text('Sync to Devices'),
-              subtitle: const Text('Unavailable'),
-              enabled: false,
-              onTap: null,
+              subtitle: const Text('Sync credentials with other devices'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SyncScreen()),
+                );
+              },
             ),
           ),
         ],

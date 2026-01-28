@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
+import 'reset_password_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -31,6 +32,22 @@ class SettingsScreenState extends State<SettingsScreen> {
     widget.onToggleTheme();
   }
 
+  Future<void> _resetPassword() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password reset successfully'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,9 +59,8 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: ListTile(
               leading: const Icon(Icons.lock),
               title: const Text('Reset Password'),
-              subtitle: const Text('Unavailable'),
-              enabled: false,
-              onTap: null,
+              subtitle: const Text('Change your master password'),
+              onTap: _resetPassword,
             ),
           ),
           const SizedBox(height: 8),

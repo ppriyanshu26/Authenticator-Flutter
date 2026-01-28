@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'crypto.dart';
+import 'totp_store.dart';
 
 class Storage {
   static const _pwKey = 'master_password_hash';
@@ -33,5 +35,31 @@ class Storage {
   static Future<bool> isDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_darkKey) ?? false;
+  }
+  static Future<void> resetMasterPassword(
+    String oldPassword,
+    String newPassword,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encryptedStore = prefs.getString(TotpStore.storeKey);
+      String decrypted = '';
+      if (encryptedStore != null && encryptedStore.isNotEmpty) {
+        decrypted = await Crypto.decryptAesWithPassword(
+          encryptedStore,
+          oldPassword,
+        );
+      }
+      await saveMasterPassword(newPassword);
+      if (decrypted.isNotEmpty) {
+        final reEncrypted = await Crypto.encryptAesWithPassword(
+          decrypted,
+          newPassword,
+        );
+        await prefs.setString(TotpStore.storeKey, reEncrypted);
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 }

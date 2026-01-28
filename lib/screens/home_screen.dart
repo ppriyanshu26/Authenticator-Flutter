@@ -146,75 +146,133 @@ class HomeScreenState extends State<HomeScreen> {
     final digits = 6;
     final period = 30;
 
-    final code = Totp.generate(
-      secret: secret,
-      digits: digits,
-      period: period,
-      time: now,
-    );
+    try {
+      final code = Totp.generate(
+        secret: secret,
+        digits: digits,
+        period: period,
+        time: now,
+      );
 
-    final remaining = period - (now % period);
+      final remaining = period - (now % period);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: GestureDetector(
-        onTap: () {
-          Clipboard.setData(ClipboardData(text: code));
-          HapticFeedback.lightImpact();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('TOTP copied to clipboard'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
-        onLongPress: () {
-          showDialog(
-            context: context,
-            builder: (_) => AlertDialog(
-              title: const Text('Delete credential?'),
-              content: Text('Delete ${item['platform']} - $user?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    final ok = await confirmPassword();
-                    if (!ok) return;
-
-                    final remaining = <Map<String, String>>[];
-                    for (int i = 0; i < totps.length; i++) {
-                      if (i != index) remaining.add(totps[i]);
-                    }
-
-                    await TotpStore.saveAll(remaining);
-
-                    setState(() {
-                      totps = remaining;
-                    });
-
-                    if (!mounted) return;
-                    Navigator.pop(context);
-
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Credential deleted'),
-                        duration: Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: GestureDetector(
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: code));
+            HapticFeedback.lightImpact();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('TOTP copied to clipboard'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+          onLongPress: () {
+            showDialog(
+              context: context,
+              builder: (_) => AlertDialog(
+                title: const Text('Delete credential?'),
+                content: Text('Delete ${item['platform']} - $user?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
                   ),
-                ),
-              ],
+                  TextButton(
+                    onPressed: () async {
+                      final ok = await confirmPassword();
+                      if (!ok) return;
+
+                      final remaining = <Map<String, String>>[];
+                      for (int i = 0; i < totps.length; i++) {
+                        if (i != index) remaining.add(totps[i]);
+                      }
+
+                      await TotpStore.saveAll(remaining);
+
+                      setState(() {
+                        totps = remaining;
+                      });
+
+                      if (!mounted) return;
+                      Navigator.pop(context);
+
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Credential deleted'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+          child: ListTile(
+            leading: selectionMode
+                ? Checkbox(
+                    value: selected.contains(index),
+                    onChanged: (_) {
+                      setState(() {
+                        selected.contains(index)
+                            ? selected.remove(index)
+                            : selected.add(index);
+                      });
+                    },
+                  )
+                : null,
+            title: Text(
+              item['platform']!,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          );
-        },
+            subtitle: Text(user),
+            trailing: selectionMode
+                ? null
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        code,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$remaining s',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+            onTap: selectionMode
+                ? () {
+                    setState(() {
+                      selected.contains(index)
+                          ? selected.remove(index)
+                          : selected.add(index);
+                    });
+                  }
+                : null,
+          ),
+        ),
+      );
+    } catch (e) {
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: ListTile(
           leading: selectionMode
               ? Checkbox(
@@ -232,28 +290,13 @@ class HomeScreenState extends State<HomeScreen> {
             item['platform']!,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          subtitle: Text(user),
+          subtitle: const Text(
+            'Error generating TOTP - try resetting password',
+            style: TextStyle(color: Colors.red, fontSize: 12),
+          ),
           trailing: selectionMode
               ? null
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      code,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$remaining s',
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
-                    ),
-                  ],
-                ),
+              : const Icon(Icons.error_outline, color: Colors.red),
           onTap: selectionMode
               ? () {
                   setState(() {
@@ -264,8 +307,8 @@ class HomeScreenState extends State<HomeScreen> {
                 }
               : null,
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override

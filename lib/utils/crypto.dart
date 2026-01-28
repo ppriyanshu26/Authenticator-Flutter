@@ -39,9 +39,47 @@ class Crypto {
     return utf8.decode(clear);
   }
 
+  static Future<String> encryptAesWithPassword(
+    String plaintext,
+    String password,
+  ) async {
+    final key = sha256.convert(utf8.encode(password)).bytes;
+    final nonce = _randomBytes(12);
+    final aes = AesGcm.with256bits();
+    final secretKey = SecretKey(key);
+
+    final box = await aes.encrypt(
+      utf8.encode(plaintext),
+      secretKey: secretKey,
+      nonce: nonce,
+    );
+
+    return base64UrlEncode(nonce + box.cipherText + box.mac.bytes);
+  }
+
+  static Future<String> decryptAesWithPassword(
+    String ciphertext,
+    String password,
+  ) async {
+    final data = base64Url.decode(ciphertext);
+    final nonce = data.sublist(0, 12);
+    final mac = Mac(data.sublist(data.length - 16));
+    final cipherText = data.sublist(12, data.length - 16);
+
+    final key = sha256.convert(utf8.encode(password)).bytes;
+    final aes = AesGcm.with256bits();
+    final secretKey = SecretKey(key);
+
+    final clear = await aes.decrypt(
+      SecretBox(cipherText, nonce: nonce, mac: mac),
+      secretKey: secretKey,
+    );
+
+    return utf8.decode(clear);
+  }
+
   static Uint8List _randomBytes(int length) {
     final rnd = Random.secure();
-    return Uint8List.fromList(
-        List.generate(length, (_) => rnd.nextInt(256)));
+    return Uint8List.fromList(List.generate(length, (_) => rnd.nextInt(256)));
   }
 }

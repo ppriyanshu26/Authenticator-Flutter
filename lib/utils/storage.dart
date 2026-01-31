@@ -5,18 +5,18 @@ import 'crypto.dart';
 import 'totp_store.dart';
 
 class Storage {
-  static const _pwKey = 'master_password_hash';
-  static const _darkKey = 'dark_mode';
+  static const pwKey = 'master_password_hash';
+  static const darkKey = 'dark_mode';
 
   static Future<void> saveMasterPassword(String password) async {
     final prefs = await SharedPreferences.getInstance();
     final hash = sha256.convert(utf8.encode(password)).toString();
-    await prefs.setString(_pwKey, hash);
+    await prefs.setString(pwKey, hash);
   }
 
   static Future<bool> verifyMasterPassword(String password) async {
     final prefs = await SharedPreferences.getInstance();
-    final stored = prefs.getString(_pwKey);
+    final stored = prefs.getString(pwKey);
     if (stored == null) return false;
     final hash = sha256.convert(utf8.encode(password)).toString();
     return stored == hash;
@@ -24,18 +24,24 @@ class Storage {
 
   static Future<bool> hasMasterPassword() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_pwKey);
+    return prefs.containsKey(pwKey);
+  }
+
+  static Future<String?> getStoredPassword() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(pwKey);
   }
 
   static Future<void> setDarkMode(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_darkKey, value);
+    await prefs.setBool(darkKey, value);
   }
 
   static Future<bool> isDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_darkKey) ?? false;
+    return prefs.getBool(darkKey) ?? false;
   }
+
   static Future<void> resetMasterPassword(
     String oldPassword,
     String newPassword,

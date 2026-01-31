@@ -13,27 +13,35 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen> {
   bool isDarkMode = false;
+  String? storedPasswordHash;
 
   @override
   void initState() {
     super.initState();
-    _loadTheme();
+    loadTheme();
+    loadPasswordHash();
   }
 
-  Future<void> _loadTheme() async {
+  Future<void> loadTheme() async {
     final dark = await Storage.isDarkMode();
     if (!mounted) return;
     setState(() => isDarkMode = dark);
   }
 
-  Future<void> _toggleTheme() async {
+  Future<void> loadPasswordHash() async {
+    final hash = await Storage.getStoredPassword();
+    if (!mounted) return;
+    setState(() => storedPasswordHash = hash);
+  }
+
+  Future<void> toggleTheme() async {
     final newValue = !isDarkMode;
     setState(() => isDarkMode = newValue);
     await Storage.setDarkMode(newValue);
     widget.onToggleTheme();
   }
 
-  Future<void> _resetPassword() async {
+  Future<void> resetPassword() async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
@@ -61,7 +69,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.lock),
               title: const Text('Reset Password'),
               subtitle: const Text('Change your master password'),
-              onTap: _resetPassword,
+              onTap: resetPassword,
             ),
           ),
           const SizedBox(height: 8),
@@ -70,7 +78,7 @@ class SettingsScreenState extends State<SettingsScreen> {
               leading: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
               title: const Text('Theme'),
               subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode'),
-              onTap: _toggleTheme,
+              onTap: toggleTheme,
             ),
           ),
           const SizedBox(height: 8),
@@ -86,14 +94,48 @@ class SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 8),
           Card(
             child: ListTile(
+              leading: const Icon(Icons.vpn_key),
+              title: const Text('View Password Hash'),
+              subtitle: const Text('Debug: Show stored password hash'),
+              onTap: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Stored Password Hash'),
+                    content: SingleChildScrollView(
+                      child: SelectableText(
+                        storedPasswordHash ?? 'No password set',
+                        style: const TextStyle(
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Close'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
               leading: const Icon(Icons.sync),
               title: const Text('Sync to Devices'),
               subtitle: const Text('Sync credentials with other devices'),
-              onTap: () {
-                Navigator.push(
+              onTap: () async {
+                final syncOccurred = await Navigator.push<bool?>(
                   context,
                   MaterialPageRoute(builder: (_) => const SyncScreen()),
                 );
+                if (syncOccurred == true && mounted) {
+                  print('[SYNC] Sync occurred, credentials may have changed');
+                }
               },
             ),
           ),

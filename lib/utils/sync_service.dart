@@ -7,22 +7,21 @@ class CipherAuthBroadcaster {
   static const String serviceType = 'CIPHERAUTH_SYNC';
   static const String broadcastAddress = '255.255.255.255';
 
-  late RawDatagramSocket _socket;
-  bool _isRunning = false;
-  late Timer _broadcastTimer;
+  late RawDatagramSocket socket;
+  bool isRunning = false;
+  late Timer broadcastTimer;
 
   Future<void> startBroadcasting(String deviceName) async {
-    if (_isRunning) return;
+    if (isRunning) return;
 
     try {
-      _socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-      _socket.broadcastEnabled = true;
-      _isRunning = true;
+      socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+      socket.broadcastEnabled = true;
+      isRunning = true;
 
-      String localIP = await _getLocalIP();
-      print('[BROADCAST] Starting broadcast as "$deviceName" on IP $localIP');
+      String localIP = await getLocalIP();
 
-      _broadcastTimer = Timer.periodic(Duration(seconds: 1), (_) {
+      broadcastTimer = Timer.periodic(Duration(seconds: 1), (_) {
         final message = {
           'type': serviceType,
           'device_name': deviceName,
@@ -31,23 +30,21 @@ class CipherAuthBroadcaster {
         };
 
         final encoded = utf8.encode(jsonEncode(message));
-        print('[BROADCAST] Sending: ${jsonEncode(message)}');
-        _socket.send(encoded, InternetAddress(broadcastAddress), broadcastPort);
+        socket.send(encoded, InternetAddress(broadcastAddress), broadcastPort);
       });
     } catch (e) {
-      print('[BROADCAST] Error starting broadcast: $e');
-      _isRunning = false;
+      isRunning = false;
     }
   }
 
   void stopBroadcasting() {
-    if (!_isRunning) return;
-    _broadcastTimer.cancel();
-    _socket.close();
-    _isRunning = false;
+    if (!isRunning) return;
+    broadcastTimer.cancel();
+    socket.close();
+    isRunning = false;
   }
 
-  Future<String> _getLocalIP() async {
+  Future<String> getLocalIP() async {
     try {
       final interfaces = await NetworkInterface.list();
       for (final interface in interfaces) {
@@ -75,10 +72,10 @@ class CipherAuthDiscovery {
   static Future<List<Map<String, dynamic>>> discoverDevices({
     String? excludeDeviceName,
   }) async {
-    return _performDiscovery(excludeDeviceName: excludeDeviceName);
+    return performDiscovery(excludeDeviceName: excludeDeviceName);
   }
 
-  static Future<List<Map<String, dynamic>>> _performDiscovery({
+  static Future<List<Map<String, dynamic>>> performDiscovery({
     String? excludeDeviceName,
   }) async {
     final devices = <String, Map<String, dynamic>>{};
@@ -91,7 +88,6 @@ class CipherAuthDiscovery {
       socket.broadcastEnabled = true;
 
       final startTime = DateTime.now();
-      print('[DISCOVERY] Starting discovery on port $broadcastPort...');
 
       while (DateTime.now().difference(startTime).inSeconds <
           discoveryTimeoutSeconds) {
@@ -100,18 +96,15 @@ class CipherAuthDiscovery {
           if (datagram == null) continue;
 
           final message = jsonDecode(utf8.decode(datagram.data));
-          print('[DISCOVERY] Received: $message from ${datagram.address}');
 
           if (message['type'] == serviceType) {
             final deviceName = message['device_name'] ?? 'Unknown';
 
             if (excludeDeviceName != null && deviceName == excludeDeviceName) {
-              print('[DISCOVERY] Excluding own device: $deviceName');
               continue;
             }
 
             final deviceIp = message['ip'] ?? datagram.address.address;
-            print('[DISCOVERY] Found device: $deviceName ($deviceIp)');
 
             devices[deviceName] = {
               'name': deviceName,
@@ -119,16 +112,14 @@ class CipherAuthDiscovery {
               'timestamp': message['timestamp'] ?? 0,
             };
           }
-        } catch (e) {
-          // Continue 
+        } catch (e) {          
+          continue;
         }
       }
 
       socket.close();
-      print('[DISCOVERY] Complete. Found ${devices.length} devices');
       return devices.values.toList();
     } catch (e) {
-      print('[DISCOVERY] Error: $e');
       return [];
     }
   }

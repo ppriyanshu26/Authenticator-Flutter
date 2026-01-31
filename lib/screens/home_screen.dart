@@ -319,14 +319,16 @@ class HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
                       SettingsScreen(onToggleTheme: widget.onToggleTheme),
                 ),
               );
+              print('[HOME] Reloading credentials after settings');
+              load();
             },
           ),
         ],

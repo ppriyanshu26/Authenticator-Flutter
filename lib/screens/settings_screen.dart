@@ -13,25 +13,17 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen> {
   bool isDarkMode = false;
-  String? storedPasswordHash;
 
   @override
   void initState() {
     super.initState();
     loadTheme();
-    loadPasswordHash();
   }
 
   Future<void> loadTheme() async {
     final dark = await Storage.isDarkMode();
     if (!mounted) return;
     setState(() => isDarkMode = dark);
-  }
-
-  Future<void> loadPasswordHash() async {
-    final hash = await Storage.getStoredPassword();
-    if (!mounted) return;
-    setState(() => storedPasswordHash = hash);
   }
 
   Future<void> toggleTheme() async {
@@ -89,37 +81,6 @@ class SettingsScreenState extends State<SettingsScreen> {
               subtitle: const Text('Unavailable'),
               enabled: false,
               onTap: null,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.vpn_key),
-              title: const Text('View Password Hash'),
-              subtitle: const Text('Debug: Show stored password hash'),
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Stored Password Hash'),
-                    content: SingleChildScrollView(
-                      child: SelectableText(
-                        storedPasswordHash ?? 'No password set',
-                        style: const TextStyle(
-                          fontFamily: 'monospace',
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
-                      ),
-                    ],
-                  ),
-                );
-              },
             ),
           ),
           const SizedBox(height: 8),

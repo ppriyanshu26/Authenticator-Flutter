@@ -2,6 +2,10 @@
 
 CipherAuth is a secure, cross-platform TOTP (Time-based One-Time Password) authenticator application designed for simplicity and security. Built with Flutter, it provides a safe vault for your two-factor authentication tokens across iOS and Android platforms.
 
+## 📦 [Releases](https://github.com/ppriyanshu26/CipherAuth-Flutter/releases)
+
+Download the latest version for Android from our [releases page](https://github.com/ppriyanshu26/CipherAuth-Flutter/releases).
+
 ## ✨ Features
 
 - **Encrypted Storage:** All your credentials are encrypted with AES-256.
@@ -55,7 +59,7 @@ Click on the **"➕"** button and fill in the account details.
 Use the **"📥 Export"** option to download a decrypted version of your credentials. Keep this file safe!
 
 ### Can I use this on different platforms?
-Yes! CipherAuth is built with Flutter, which means you can run it on iOS and Android. Just compile for your desired platform. For desktop platforms like Linux distros, macOS and Windows, [check here](https://github.com/ppriyanshu26/CipherAuth-Desktop)
+Yes! CipherAuth is built with Flutter, which means you can run it on iOS and Android. Just compile for your desired platform. For desktop platforms like Linux distros, macOS and Windows, [CipherAuth-Desktop](https://github.com/ppriyanshu26/CipherAuth-Desktop)
 
 ### Is my data synced to the cloud?
 No. CipherAuth is designed to be fully offline for maximum privacy. Your data stays on your device. However, you can sync your credentials across multiple devices on the same network using the built-in **Sync** feature (🔃). Devices must have the same master password encryption key to synchronize securely.

@@ -34,6 +34,8 @@ dependencies:
   crypto: ^3.0.3
   cryptography: ^2.7.0
   mobile_scanner: ^7.1.4
+  path_provider: ^2.1.1
+  permission_handler: ^12.0.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

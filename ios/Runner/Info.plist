@@ -28,6 +28,14 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Camera access is required to scan QR codes</string>
 
+	<key>NSDocumentsUsageDescription</key>
+	<string>Documents access is required to export your credentials as CSV</string>
+
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
+import '../utils/export_service.dart';
 import 'reset_password_screen.dart';
 import 'sync_screen.dart';
 
@@ -49,6 +50,20 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> exportCredentials() async {
+    final (success, message) = await ExportService.exportToCsv();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 3),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,9 +109,27 @@ class SettingsScreenState extends State<SettingsScreen> {
                   context,
                   MaterialPageRoute(builder: (_) => const SyncScreen()),
                 );
-                if (syncOccurred == true && mounted) {
-                }
+                if (syncOccurred == true && mounted) {}
               },
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.qr_code_2),
+              title: const Text('View QR'),
+              subtitle: const Text('Scan with any authenticator app'),
+              enabled: false,
+              onTap: null,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Export Credentials'),
+              subtitle: const Text('Export your credentials to a file'),
+              onTap: exportCredentials,
             ),
           ),
         ],

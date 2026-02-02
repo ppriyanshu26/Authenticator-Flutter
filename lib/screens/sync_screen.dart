@@ -20,7 +20,7 @@ class SyncScreenState extends State<SyncScreen> {
   bool isDiscovering = false;
   bool isBroadcasting = false;
   bool syncOccurred = false;
-  String deviceName = 'Flutter Device';
+  String deviceName = 'CipherAuth Flutter';
   final TextEditingController deviceNameController = TextEditingController();
 
   @override

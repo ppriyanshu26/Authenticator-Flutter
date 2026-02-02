@@ -55,7 +55,7 @@ Click on the **"➕"** button and fill in the account details.
 Use the **"📥 Export"** option to download a decrypted version of your credentials. Keep this file safe!
 
 ### Can I use this on different platforms?
-Yes! CipherAuth is built with Flutter, which means you can run it on iOS and Android. Just compile for your desired platform. For desktop platforms like Linux distros, macOS and Windows, [check here](https://github.com/ppriyanshu26/Authenticator-Desktop)
+Yes! CipherAuth is built with Flutter, which means you can run it on iOS and Android. Just compile for your desired platform. For desktop platforms like Linux distros, macOS and Windows, [check here](https://github.com/ppriyanshu26/CipherAuth-Desktop)
 
 ### Is my data synced to the cloud?
 No. CipherAuth is designed to be fully offline for maximum privacy. Your data stays on your device. However, you can sync your credentials across multiple devices on the same network using the built-in **Sync** feature (🔃). Devices must have the same master password encryption key to synchronize securely.

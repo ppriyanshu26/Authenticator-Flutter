@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/sync_service.dart';
 import '../utils/sync_connection.dart';
@@ -20,8 +21,23 @@ class SyncScreenState extends State<SyncScreen> {
   bool isDiscovering = false;
   bool isBroadcasting = false;
   bool syncOccurred = false;
-  String deviceName = 'CipherAuth Flutter';
+  late String deviceName;
   final TextEditingController deviceNameController = TextEditingController();
+
+  String setDeviceName() {
+    if (Platform.isAndroid) {
+      return 'CipherAuth Android';
+    } else if (Platform.isWindows) {
+      return 'CipherAuth Windows';
+    } else if (Platform.isIOS) {
+      return 'CipherAuth iOS';
+    } else if (Platform.isMacOS) {
+      return 'CipherAuth macOS';
+    } else if (Platform.isLinux) {
+      return 'CipherAuth Linux';
+    }
+    return 'CipherAuth Device';
+  }
 
   @override
   void initState() {
@@ -64,7 +80,7 @@ class SyncScreenState extends State<SyncScreen> {
 
   Future<void> loadDeviceName() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedName = prefs.getString('device_name') ?? 'Flutter Device';
+    final savedName = prefs.getString('device_name') ?? setDeviceName();
     setState(() {
       deviceName = savedName;
       deviceNameController.text = deviceName;

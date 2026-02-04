@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'screens/startup_screen.dart';
 import 'utils/storage.dart';
 import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
   
-  windowManager.waitUntilReadyToShow().then((_) async {
-    await windowManager.setMinimumSize(const Size(400, 600));
-    await windowManager.show();
-  });
-  
+  if (Platform.isWindows) {
+    await windowManager.ensureInitialized();
+    windowManager.waitUntilReadyToShow().then((_) async {
+      await windowManager.setMinimumSize(const Size(400, 600));
+      await windowManager.show();
+    });
+  }
+
   runApp(const MyApp());
 }
+
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

@@ -84,6 +84,7 @@ class ViewQrScreenState extends State<ViewQrScreen> {
               TextField(
                 controller: passwordController,
                 obscureText: !isPasswordVisible,
+                onSubmitted: (_) => verifyPassword(),
                 decoration: InputDecoration(
                   hintText: 'Password',
                   border: OutlineInputBorder(

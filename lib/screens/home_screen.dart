@@ -167,7 +167,10 @@ class HomeScreenState extends State<HomeScreen> {
             );
           },
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
             minLeadingWidth: 0,
             leading: selectionMode
                 ? Checkbox(
@@ -188,29 +191,35 @@ class HomeScreenState extends State<HomeScreen> {
             subtitle: Text(user),
             trailing: selectionMode
                 ? null
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        code,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                          color: color,
-                        ),
+                : SizedBox(
+                    width: 100,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            code,
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: color,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 0),
+                          Text(
+                            '$remaining s',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: color.withValues(alpha: 0.7),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 0),
-                      Text(
-                        '$remaining s',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: color.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
             onTap: selectionMode
                 ? () {
@@ -274,6 +283,9 @@ class HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: isSearching
             ? Row(
                 children: [
@@ -311,10 +323,7 @@ class HomeScreenState extends State<HomeScreen> {
             : const Text('CipherAuth'),
         actions: [
           if (!isSearching && !selectionMode)
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: addAccount,
-            ),
+            IconButton(icon: const Icon(Icons.add), onPressed: addAccount),
           if (!isSearching)
             IconButton(
               icon: const Icon(Icons.search),

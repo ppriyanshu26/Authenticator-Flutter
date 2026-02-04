@@ -59,6 +59,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
             TextField(
               controller: passwordController,
               obscureText: obscure1,
+              onSubmitted: (_) => create(),
               decoration: InputDecoration(
                 labelText: 'Master Password',
                 border: const OutlineInputBorder(),
@@ -74,6 +75,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
             TextField(
               controller: confirmController,
               obscureText: obscure2,
+              onSubmitted: (_) => create(),
               decoration: InputDecoration(
                 labelText: 'Confirm Password',
                 border: const OutlineInputBorder(),
@@ -91,7 +93,13 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 child: Text(error!, style: const TextStyle(color: Colors.red)),
               ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: create, child: const Text('Create')),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: create,
+                child: const Text('Create'),
+              ),
+            ),
           ],
         ),
       ),

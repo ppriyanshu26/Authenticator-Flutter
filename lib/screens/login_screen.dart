@@ -45,6 +45,7 @@ class LoginScreenState extends State<LoginScreen> {
             TextField(
               controller: controller,
               obscureText: obscure,
+              onSubmitted: (_) => login(),
               decoration: InputDecoration(
                 labelText: 'Master Password',
                 border: const OutlineInputBorder(),
@@ -60,7 +61,13 @@ class LoginScreenState extends State<LoginScreen> {
                 child: Text(error!, style: const TextStyle(color: Colors.red)),
               ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: login, child: const Text('Login')),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: login,
+                child: const Text('Login'),
+              ),
+            ),
           ],
         ),
       ),

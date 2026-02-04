@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io' show Platform;
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrScanScreen extends StatefulWidget {
@@ -15,15 +16,19 @@ class QrScanScreenState extends State<QrScanScreen> {
   @override
   void initState() {
     super.initState();
-    controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
-      facing: CameraFacing.back,
-    );
+    if (Platform.isAndroid || Platform.isIOS) {
+      controller = MobileScannerController(
+        detectionSpeed: DetectionSpeed.noDuplicates,
+        facing: CameraFacing.back,
+      );
+    }
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    if (Platform.isAndroid || Platform.isIOS) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -37,7 +42,9 @@ class QrScanScreenState extends State<QrScanScreen> {
 
     scanned = true;
 
-    await controller.stop();
+    if (Platform.isAndroid || Platform.isIOS) {
+      await controller.stop();
+    }
 
     if (!mounted) return;
     Navigator.pop(context, value);
@@ -45,12 +52,18 @@ class QrScanScreenState extends State<QrScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Scan QR')),
+        body: const Center(
+          child: Text('QR scanning is not available on this platform'),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Scan QR')),
-      body: MobileScanner(
-        controller: controller,
-        onDetect: onDetect,
-      ),
+      body: MobileScanner(controller: controller, onDetect: onDetect),
     );
   }
 }

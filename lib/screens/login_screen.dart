@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
 import '../utils/runtime_key.dart';
+import '../utils/biometric_service.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,6 +16,50 @@ class LoginScreenState extends State<LoginScreen> {
   final controller = TextEditingController();
   bool obscure = true;
   String? error;
+  bool canUseBiometrics = false;
+  bool isAuthenticating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checkBio();
+  }
+
+  Future<void> checkBio() async {
+    final canUse = await BiometricService.canUseBiometrics();
+    setState(() => canUseBiometrics = canUse);
+  }
+
+  Future<void> bioAuth() async {
+    setState(() => isAuthenticating = true);
+    final (authenticated, _) = await BiometricService.authenticateWithError();
+
+    if (!mounted) return;
+    if (authenticated) {
+      final password = await BiometricService.getStoredMasterPassword();
+      if (!mounted) return;
+
+      if (password != null) {
+        RuntimeKey.rawPassword = password;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(onToggleTheme: widget.onToggleTheme),
+          ),
+        );
+      } else {
+        setState(() {
+          error = 'Biometric password not found. Please enter manually.';
+          isAuthenticating = false;
+        });
+      }
+    } else {
+      setState(() {
+        error = 'Biometric authentication failed';
+        isAuthenticating = false;
+      });
+    }
+  }
 
   Future<void> login() async {
     final ok = await Storage.verifyMasterPassword(controller.text);
@@ -24,6 +69,59 @@ class LoginScreenState extends State<LoginScreen> {
     }
 
     RuntimeKey.rawPassword = controller.text;
+    if (!mounted) return;
+    final canUseBio = await BiometricService.canUseBiometrics();
+    final isBioEnabled = await BiometricService.isBiometricEnabled();
+
+    if (canUseBio && !isBioEnabled) {
+      showBiometricSetupDialog(controller.text);
+    } else {
+      navigateToHome();
+    }
+  }
+
+  void showBiometricSetupDialog(String password) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Enable Biometric Unlock?'),
+        content: const Text(
+          'You can unlock the app with your fingerprint or face. This is more secure than entering your password every time.',
+        ),
+        actions: [
+          TextButton(onPressed: navigateToHome, child: const Text('No')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              enableBiometricAndNavigate(password);
+            },
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> enableBiometricAndNavigate(String password) async {
+    try {
+      await BiometricService.enableBiometric(password);
+      if (!mounted) return;
+      navigateToHome();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to enable biometric: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      if (!mounted) return;
+      navigateToHome();
+    }
+  }
+
+  void navigateToHome() {
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -68,6 +166,17 @@ class LoginScreenState extends State<LoginScreen> {
                 child: const Text('Login'),
               ),
             ),
+            if (canUseBiometrics) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isAuthenticating ? null : bioAuth,
+                  icon: const Icon(Icons.fingerprint),
+                  label: const Text('Try Biometric'),
+                ),
+              ),
+            ],
           ],
         ),
       ),

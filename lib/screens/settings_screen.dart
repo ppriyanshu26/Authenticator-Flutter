@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
 import '../utils/export_service.dart';
+import '../utils/biometric_service.dart';
+import '../utils/runtime_key.dart';
 import 'reset_password_screen.dart';
 import 'sync_screen.dart';
 import 'view_qr_screen.dart';
@@ -15,17 +17,76 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen> {
   bool isDarkMode = false;
+  bool canUseBiometric = false;
+  bool isBiometricEnabled = false;
 
   @override
   void initState() {
     super.initState();
     loadTheme();
+    loadBiometricStatus();
   }
 
   Future<void> loadTheme() async {
     final dark = await Storage.isDarkMode();
     if (!mounted) return;
     setState(() => isDarkMode = dark);
+  }
+
+  Future<void> loadBiometricStatus() async {
+    final canUse = await BiometricService.canUseBiometrics();
+    final isEnabled = await BiometricService.isBiometricEnabled();
+    if (!mounted) return;
+    setState(() {
+      canUseBiometric = canUse;
+      isBiometricEnabled = isEnabled;
+    });
+  }
+
+  Future<void> toggleBiometric(bool value) async {
+    if (value) {
+      if (RuntimeKey.rawPassword != null) {
+        try {
+          await BiometricService.enableBiometric(RuntimeKey.rawPassword!);
+          setState(() => isBiometricEnabled = true);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Biometric unlock enabled'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } catch (e) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to enable biometric: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } else {
+      try {
+        await BiometricService.disableBiometric();
+        setState(() => isBiometricEnabled = false);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Biometric unlock disabled'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to disable biometric: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> toggleTheme() async {
@@ -94,8 +155,14 @@ class SettingsScreenState extends State<SettingsScreen> {
               leading: const Icon(Icons.fingerprint),
               title: const Text('Biometrics'),
               subtitle: const Text('Unlock with your fingerprint or face'),
-              enabled: false,
-              onTap: null,
+              enabled: canUseBiometric,
+              trailing: Switch(
+                value: isBiometricEnabled,
+                onChanged: canUseBiometric ? toggleBiometric : null,
+              ),
+              onTap: canUseBiometric
+                  ? () => toggleBiometric(!isBiometricEnabled)
+                  : null,
             ),
           ),
           const SizedBox(height: 8),

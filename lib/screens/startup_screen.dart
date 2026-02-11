@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
-import '../utils/biometric_service.dart';
 import 'create_password_screen.dart';
 import 'login_screen.dart';
-import 'biometric_login_screen.dart';
 
 class StartupScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -15,7 +13,6 @@ class StartupScreen extends StatefulWidget {
 
 class StartupScreenState extends State<StartupScreen> {
   bool? hasPassword;
-  bool? bioEnabled;
 
   @override
   void initState() {
@@ -25,9 +22,6 @@ class StartupScreenState extends State<StartupScreen> {
 
   Future<void> check() async {
     hasPassword = await Storage.hasMasterPassword();
-    if (hasPassword!) {
-      bioEnabled = await BiometricService.isBiometricEnabled();
-    }
     setState(() {});
   }
 
@@ -39,14 +33,6 @@ class StartupScreenState extends State<StartupScreen> {
 
     if (!hasPassword!) {
       return CreatePasswordScreen(onToggleTheme: widget.onToggleTheme);
-    }
-
-    if (bioEnabled == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (bioEnabled!) {
-      return BiometricLoginScreen(onToggleTheme: widget.onToggleTheme);
     }
 
     return LoginScreen(onToggleTheme: widget.onToggleTheme);

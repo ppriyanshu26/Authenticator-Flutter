@@ -17,6 +17,7 @@ class LoginScreenState extends State<LoginScreen> {
   bool obscure = true;
   String? error;
   bool canUseBiometrics = false;
+  bool isBioEnabled = false;
   bool isAuthenticating = false;
 
   @override
@@ -27,7 +28,11 @@ class LoginScreenState extends State<LoginScreen> {
 
   Future<void> checkBio() async {
     final canUse = await BiometricService.canUseBiometrics();
-    setState(() => canUseBiometrics = canUse);
+    final bioEnabled = await BiometricService.isBiometricEnabled();
+    setState(() {
+      canUseBiometrics = canUse;
+      isBioEnabled = bioEnabled;
+    });
   }
 
   Future<void> bioAuth() async {
@@ -70,55 +75,7 @@ class LoginScreenState extends State<LoginScreen> {
 
     RuntimeKey.rawPassword = controller.text;
     if (!mounted) return;
-    final canUseBio = await BiometricService.canUseBiometrics();
-    final isBioEnabled = await BiometricService.isBiometricEnabled();
-
-    if (canUseBio && !isBioEnabled) {
-      showBiometricSetupDialog(controller.text);
-    } else {
-      navigateToHome();
-    }
-  }
-
-  void showBiometricSetupDialog(String password) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Enable Biometric Unlock?'),
-        content: const Text(
-          'You can unlock the app with your fingerprint or face. This is more secure than entering your password every time.',
-        ),
-        actions: [
-          TextButton(onPressed: navigateToHome, child: const Text('No')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              enableBiometricAndNavigate(password);
-            },
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> enableBiometricAndNavigate(String password) async {
-    try {
-      await BiometricService.enableBiometric(password);
-      if (!mounted) return;
-      navigateToHome();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to enable biometric: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      if (!mounted) return;
-      navigateToHome();
-    }
+    navigateToHome();
   }
 
   void navigateToHome() {
@@ -166,7 +123,7 @@ class LoginScreenState extends State<LoginScreen> {
                 child: const Text('Login'),
               ),
             ),
-            if (canUseBiometrics) ...[
+            if (canUseBiometrics && isBioEnabled) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,

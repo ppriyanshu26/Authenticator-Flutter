@@ -6,19 +6,18 @@ import 'package:window_manager/window_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   if (Platform.isWindows) {
     await windowManager.ensureInitialized();
     windowManager.waitUntilReadyToShow().then((_) async {
       await windowManager.setMinimumSize(const Size(400, 600));
+      await windowManager.setSize(const Size(400, 600));
       await windowManager.show();
     });
   }
 
   runApp(const MyApp());
 }
-
-
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

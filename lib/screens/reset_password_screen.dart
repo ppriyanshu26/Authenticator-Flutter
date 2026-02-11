@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../utils/storage.dart';
 import '../utils/runtime_key.dart';
+import '../utils/biometric_service.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -64,10 +65,11 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
         oldPasswordController.text,
         newPasswordController.text,
       );
+      await BiometricService.disableBiometric();
       RuntimeKey.rawPassword = newPasswordController.text;
 
       if (!mounted) return;
-      Navigator.pop(context, true); 
+      Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password reset successfully'),

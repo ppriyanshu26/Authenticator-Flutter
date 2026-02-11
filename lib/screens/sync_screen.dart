@@ -19,7 +19,6 @@ class SyncScreenState extends State<SyncScreen> {
   late CipherAuthBroadcaster broadcaster;
   List<Map<String, dynamic>> discoveredDevices = [];
   bool isDiscovering = false;
-  bool isBroadcasting = false;
   bool syncOccurred = false;
   late String deviceName;
   final TextEditingController deviceNameController = TextEditingController();
@@ -97,7 +96,6 @@ class SyncScreenState extends State<SyncScreen> {
   }
 
   Future<void> startSync() async {
-    setState(() => isBroadcasting = true);
     await broadcaster.startBroadcasting(deviceName);
     discoverDevices();
   }
@@ -225,14 +223,6 @@ class SyncScreenState extends State<SyncScreen> {
                         );
                       },
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  isBroadcasting ? '📡 Broadcasting...' : 'Ready to sync',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 12),

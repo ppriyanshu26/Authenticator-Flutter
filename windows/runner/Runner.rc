@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "in.ppriyanshu" "\0"
-            VALUE "FileDescription", "cipherauth" "\0"
+            VALUE "CompanyName", "Priyanshu Priyam\0"
+            VALUE "FileDescription", "CipherAuth\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "cipherauth" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 in.ppriyanshu. All rights reserved." "\0"
-            VALUE "OriginalFilename", "cipherauth.exe" "\0"
-            VALUE "ProductName", "cipherauth" "\0"
+            VALUE "InternalName", "cipherauth\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Priyanshu Priyam. All rights reserved.\0"
+            VALUE "OriginalFilename", "CipherAuth.exe\0"
+            VALUE "ProductName", "CipherAuth\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

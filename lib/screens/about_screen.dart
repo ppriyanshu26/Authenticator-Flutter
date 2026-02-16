@@ -38,7 +38,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'Version 6.1.1',
+                    'Version 6.1.2',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
@@ -48,7 +48,7 @@ class AboutScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 16, height: 1.5),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 50),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

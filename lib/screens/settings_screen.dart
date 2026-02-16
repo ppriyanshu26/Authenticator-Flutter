@@ -7,6 +7,7 @@ import 'reset_password_screen.dart';
 import 'sync_screen.dart';
 import 'view_qr_screen.dart';
 import 'about_screen.dart';
+import 'support_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -162,9 +163,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.fingerprint),
                     title: const Text('Biometrics'),
-                    subtitle: const Text(
-                      'Unlock with your fingerprint or face',
-                    ),
+                    subtitle: const Text('Unlock with your fingerprint or face'),
                     enabled: canUseBiometric,
                     trailing: Switch(
                       value: isBiometricEnabled,
@@ -182,10 +181,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('Sync to Devices'),
                     subtitle: const Text('Sync credentials with other devices'),
                     onTap: () async {
-                      final syncOccurred = await Navigator.push<bool?>(
-                        context,
-                        MaterialPageRoute(builder: (_) => const SyncScreen()),
-                      );
+                      final syncOccurred = await Navigator.push<bool?>(context, MaterialPageRoute(builder: (_) => const SyncScreen()));
                       if (syncOccurred == true && mounted) {}
                     },
                   ),
@@ -197,10 +193,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('View QR'),
                     subtitle: const Text('Scan with any authenticator app'),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ViewQrScreen()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewQrScreen()));
                     },
                   ),
                 ),
@@ -216,14 +209,22 @@ class SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 8),
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.info),
-                    title: const Text('About'),
-                    subtitle: const Text('About CipherAuth and features'),
+                    leading: const Icon(Icons.support_agent),
+                    title: const Text('Support'),
+                    subtitle: const Text('View policy and contact support'),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AboutScreen()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen()));
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.info),
+                    title: const Text('About CipherAuth'),
+                    subtitle: const Text('Learn about the app'),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
                     },
                   ),
                 ),

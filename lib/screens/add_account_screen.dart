@@ -210,6 +210,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Account'),
+        scrolledUnderElevation: 0,
         bottom: TabBar(
           controller: tabController,
           tabs: const [

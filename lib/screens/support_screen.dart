@@ -13,7 +13,7 @@ class SupportScreenState extends State<SupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Support')),
+      appBar: AppBar(title: const Text('Support'), scrolledUnderElevation: 0),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

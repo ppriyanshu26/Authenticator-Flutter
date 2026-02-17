@@ -137,7 +137,7 @@ class ViewQrScreenState extends State<ViewQrScreen> {
   Widget build(BuildContext context) {
     if (!isPasswordVerified) {
       return Scaffold(
-        appBar: AppBar(title: const Text('View QR')),
+        appBar: AppBar(title: const Text('View QR'), scrolledUnderElevation: 0),
         body: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -204,7 +204,10 @@ class ViewQrScreenState extends State<ViewQrScreen> {
 
     if (selectedIndex == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Select Credential')),
+        appBar: AppBar(
+          title: const Text('Select Credential'),
+          scrolledUnderElevation: 0,
+        ),
         body: totps.isEmpty
             ? const Center(child: Text('No credentials found'))
             : ListView.builder(
@@ -240,6 +243,7 @@ class ViewQrScreenState extends State<ViewQrScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(item['platform']!),
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

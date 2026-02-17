@@ -132,7 +132,7 @@ class SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Settings'), scrolledUnderElevation: 0),
       body: Column(
         children: [
           Expanded(
@@ -163,7 +163,9 @@ class SettingsScreenState extends State<SettingsScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.fingerprint),
                     title: const Text('Biometrics'),
-                    subtitle: const Text('Unlock with your fingerprint or face'),
+                    subtitle: const Text(
+                      'Unlock with your fingerprint or face',
+                    ),
                     enabled: canUseBiometric,
                     trailing: Switch(
                       value: isBiometricEnabled,
@@ -181,7 +183,10 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('Sync to Devices'),
                     subtitle: const Text('Sync credentials with other devices'),
                     onTap: () async {
-                      final syncOccurred = await Navigator.push<bool?>(context, MaterialPageRoute(builder: (_) => const SyncScreen()));
+                      final syncOccurred = await Navigator.push<bool?>(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SyncScreen()),
+                      );
                       if (syncOccurred == true && mounted) {}
                     },
                   ),
@@ -193,7 +198,10 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('View QR'),
                     subtitle: const Text('Scan with any authenticator app'),
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewQrScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ViewQrScreen()),
+                      );
                     },
                   ),
                 ),
@@ -213,7 +221,12 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('Support'),
                     subtitle: const Text('View policy and contact support'),
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SupportScreen(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -224,7 +237,10 @@ class SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('About CipherAuth'),
                     subtitle: const Text('Learn about the app'),
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AboutScreen()),
+                      );
                     },
                   ),
                 ),

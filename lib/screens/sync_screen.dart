@@ -191,6 +191,7 @@ class SyncScreenState extends State<SyncScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sync Devices'),
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

@@ -80,6 +80,7 @@ class SyncScreenState extends State<SyncScreen> {
   Future<void> loadDeviceName() async {
     final prefs = await SharedPreferences.getInstance();
     final savedName = prefs.getString('device_name') ?? setDeviceName();
+    if (!mounted) return;
     setState(() {
       deviceName = savedName;
       deviceNameController.text = deviceName;
@@ -90,6 +91,7 @@ class SyncScreenState extends State<SyncScreen> {
   Future<void> saveDeviceName(String name) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('device_name', name);
+    if (!mounted) return;
     setState(() => deviceName = name);
     broadcaster.stopBroadcasting();
     startSync();
@@ -101,8 +103,10 @@ class SyncScreenState extends State<SyncScreen> {
   }
 
   Future<void> discoverDevices() async {
+    if (!mounted) return;
     setState(() => isDiscovering = true);
     final devices = await compute(runDiscovery, deviceName);
+    if (!mounted) return;
     setState(() {
       discoveredDevices = devices;
       isDiscovering = false;

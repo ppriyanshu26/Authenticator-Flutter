@@ -38,7 +38,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'Version 6.1.2',
+                    'Version 6.1.3',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
@@ -52,55 +52,82 @@ class AboutScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      GestureDetector(
-                        onTap: () async {
-                          final uri = Uri.parse(
-                            'https://www.github.com/ppriyanshu26/',
-                          );
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        child: Image.asset(
-                          'assets/social/github.png',
-                          width: 40,
-                          height: 40,
-                        ),
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse(
+                                'https://www.github.com/ppriyanshu26/',
+                              );
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: Image.asset(
+                              'assets/social/github.png',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'ppriyanshu26',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ),
                       const SizedBox(width: 24),
-                      GestureDetector(
-                        onTap: () async {
-                          final uri = Uri.parse(
-                            'https://www.linkedin.com/in/ppriyanshu26/',
-                          );
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        child: Image.asset(
-                          'assets/social/linkedin.png',
-                          width: 40,
-                          height: 40,
-                        ),
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse(
+                                'https://www.linkedin.com/in/ppriyanshu26/',
+                              );
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: Image.asset(
+                              'assets/social/linkedin.png',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'ppriyanshu26',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ),
                       const SizedBox(width: 24),
-                      GestureDetector(
-                        onTap: () async {
-                          final uri = Uri.parse(
-                            'https://www.instagram.com/ppriyanshu26_/',
-                          );
-                          await launchUrl(
-                            uri,
-                            mode: LaunchMode.externalApplication,
-                          );
-                        },
-                        child: Image.asset(
-                          'assets/social/instagram.png',
-                          width: 40,
-                          height: 40,
-                        ),
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final uri = Uri.parse(
+                                'https://www.instagram.com/ppriyanshu26_/',
+                              );
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            },
+                            child: Image.asset(
+                              'assets/social/instagram.png',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'ppriyanshu26_',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ),
                     ],
                   ),

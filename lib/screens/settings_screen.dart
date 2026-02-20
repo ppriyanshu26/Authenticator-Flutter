@@ -139,23 +139,20 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(8),
               children: [
+                // Security Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    'Security',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.lock),
                     title: const Text('Reset Password'),
                     subtitle: const Text('Change your master password'),
                     onTap: resetPassword,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Card(
-                  child: ListTile(
-                    leading: Icon(
-                      isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                    ),
-                    title: const Text('Theme'),
-                    subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode'),
-                    onTap: toggleTheme,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -176,7 +173,16 @@ class SettingsScreenState extends State<SettingsScreen> {
                         : null,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
+
+                // Data Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'Data',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.sync),
@@ -194,6 +200,44 @@ class SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 8),
                 Card(
                   child: ListTile(
+                    leading: const Icon(Icons.upload),
+                    title: const Text('Export Credentials'),
+                    subtitle: const Text('Export your credentials to a file'),
+                    onTap: exportCredentials,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Display Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'Display',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                    ),
+                    title: const Text('Theme'),
+                    subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode'),
+                    onTap: toggleTheme,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Tools Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'Tools',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Card(
+                  child: ListTile(
                     leading: const Icon(Icons.qr_code_2),
                     title: const Text('View QR'),
                     subtitle: const Text('Scan with any authenticator app'),
@@ -205,16 +249,16 @@ class SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 8),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.upload),
-                    title: const Text('Export Credentials'),
-                    subtitle: const Text('Export your credentials to a file'),
-                    onTap: exportCredentials,
+                const SizedBox(height: 16),
+
+                // About Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text(
+                    'About',
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                const SizedBox(height: 8),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.support_agent),

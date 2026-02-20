@@ -23,7 +23,19 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    checkBio();
+    startupBiometric();
+  }
+
+  Future<void> startupBiometric() async {
+    await checkBio();
+    if (!mounted) return;
+    if (canUseBiometrics && isBioEnabled) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          bioAuth();
+        }
+      });
+    }
   }
 
   Future<void> checkBio() async {
@@ -97,6 +109,14 @@ class LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset('assets/icon/icon.png', width: 100, height: 100),
+            const SizedBox(height: 16),
+            const Text(
+              'Your Credentials, Your Device. Offline Encrypted and completely private',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 32),
             TextField(
               controller: controller,
               obscureText: obscure,

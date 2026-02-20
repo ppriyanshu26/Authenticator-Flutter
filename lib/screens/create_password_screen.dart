@@ -59,6 +59,21 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Image.asset(
+              'assets/icon/icon.png',
+              width: 100,
+              height: 100,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Your Credentials, Your Device. Offline Encrypted and completely private',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 32),
             TextField(
               controller: passwordController,
               obscureText: obscure1,

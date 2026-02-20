@@ -314,7 +314,7 @@ class HomeScreenState extends State<HomeScreen> {
                     });
                   },
                   decoration: const InputDecoration(
-                    hintText: 'Search...',
+                    hintText: 'Search accounts...',
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,

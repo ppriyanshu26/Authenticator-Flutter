@@ -27,7 +27,19 @@ class ViewQrScreenState extends State<ViewQrScreen> {
   @override
   void initState() {
     super.initState();
-    checkBio();
+    startupBiometric();
+  }
+
+  Future<void> startupBiometric() async {
+    await checkBio();
+    if (!mounted) return;
+    if (canUseBiometrics && isBioEnabled) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          bioAuth();
+        }
+      });
+    }
   }
 
   Future<void> checkBio() async {

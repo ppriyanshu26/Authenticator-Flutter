@@ -52,10 +52,41 @@ class MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryBlue = Color(0xFF1E88E5);
+    const accentOrange = Color(0xFFFF7043);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: ThemeData.light().copyWith(
+        primaryColor: primaryBlue,
+        colorScheme: const ColorScheme.light(
+          primary: primaryBlue,
+          secondary: accentOrange,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: primaryBlue,
+          foregroundColor: Colors.white,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: accentOrange,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        primaryColor: primaryBlue,
+        colorScheme: const ColorScheme.dark(
+          primary: primaryBlue,
+          secondary: accentOrange,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF121212),
+          foregroundColor: Colors.white,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: accentOrange,
+          foregroundColor: Colors.white,
+        ),
+      ),
       themeMode: themeMode,
       home: StartupScreen(onToggleTheme: toggleTheme),
     );

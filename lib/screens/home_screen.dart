@@ -20,7 +20,6 @@ class HomeScreenState extends State<HomeScreen> {
   bool selectionMode = false;
   String searchQuery = '';
   late FocusNode searchFocusNode = FocusNode();
-  bool isSearching = false;
 
   Timer? timer;
   int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -29,14 +28,6 @@ class HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     load();
-    searchFocusNode.addListener(() {
-      if (!searchFocusNode.hasFocus && isSearching) {
-        setState(() {
-          isSearching = false;
-          searchQuery = '';
-        });
-      }
-    });
     timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
         now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -193,32 +184,30 @@ class HomeScreenState extends State<HomeScreen> {
                 ? null
                 : SizedBox(
                     width: 100,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            code,
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              color: color,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          code,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                            color: color,
                           ),
-                          const SizedBox(height: 0),
-                          Text(
-                            '$remaining s',
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: color.withValues(alpha: 0.7),
-                            ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 0),
+                        Text(
+                          '$remaining s',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: color.withValues(alpha: 0.7),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
             onTap: selectionMode
@@ -283,71 +272,23 @@ class HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
+        title: const Text('CipherAuth'),
         scrolledUnderElevation: 0,
-        title: isSearching
-            ? Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        isSearching = false;
-                        searchQuery = '';
-                      });
-                      searchFocusNode.unfocus();
-                    },
-                  ),
-                  Expanded(
-                    child: TextField(
-                      focusNode: searchFocusNode,
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search platforms...',
-                        hintStyle: const TextStyle(color: Colors.white70),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.only(left: 8),
-                      ),
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              )
-            : const Text('CipherAuth'),
         actions: [
-          if (!isSearching && !selectionMode)
-            IconButton(icon: const Icon(Icons.add), onPressed: addAccount),
-          if (!isSearching)
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                setState(() {
-                  isSearching = true;
-                });
-                searchFocusNode.requestFocus();
-              },
-            ),
-          if (!selectionMode)
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        SettingsScreen(onToggleTheme: widget.onToggleTheme),
-                  ),
-                );
-                load();
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () async {
+              searchFocusNode.unfocus();
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      SettingsScreen(onToggleTheme: widget.onToggleTheme),
+                ),
+              );
+              load();
+            },
+          ),
         ],
       ),
       body: GestureDetector(
@@ -356,20 +297,60 @@ class HomeScreenState extends State<HomeScreen> {
         },
         child: Column(
           children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white10
+                      : Colors.black12,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: TextField(
+                  focusNode: searchFocusNode,
+                  onChanged: (value) {
+                    setState(() {
+                      searchQuery = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    hintText: 'Search...',
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    prefixIcon: Icon(Icons.search, size: 20),
+                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
             Expanded(
               child: totps.isEmpty
                   ? const Center(child: Text('No accounts added'))
-                  : filteredTotps.isEmpty
+                  : searchQuery.isNotEmpty && filteredTotps.isEmpty
                   ? const Center(child: Text('No platforms match your search'))
                   : ListView.builder(
-                      itemCount: filteredTotps.length,
-                      itemBuilder: (_, i) => tile(i, filteredTotps[i]),
+                      itemCount: filteredTotps.isEmpty
+                          ? totps.length
+                          : filteredTotps.length,
+                      itemBuilder: (_, i) => tile(
+                        i,
+                        filteredTotps.isEmpty ? totps[i] : filteredTotps[i],
+                      ),
                     ),
             ),
           ],
         ),
       ),
-      floatingActionButton: null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: addAccount,
+        backgroundColor: Colors.orange.withValues(alpha: 0.5),
+        child: const Icon(Icons.add),
+      ),
       bottomNavigationBar: selectionMode
           ? BottomAppBar(
               child: Padding(

@@ -150,7 +150,6 @@ class SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
 
     if (success && newCreds.isNotEmpty) {
-      // Show confirmation dialog
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -205,13 +204,9 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(8),
               children: [
-                // Display Section
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Text(
-                    'Display',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  child: Text('Display', style: Theme.of(context).textTheme.titleMedium),
                 ),
                 Card(
                   child: ListTile(
@@ -224,14 +219,9 @@ class SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Security Section
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'Security',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  child: Text('Security', style: Theme.of(context).textTheme.titleMedium),
                 ),
                 Card(
                   child: ListTile(
@@ -260,14 +250,9 @@ class SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Data Section
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'Data',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  child: Text('Sync & Share', style: Theme.of(context).textTheme.titleMedium),
                 ),
                 Card(
                   child: ListTile(
@@ -286,9 +271,27 @@ class SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 8),
                 Card(
                   child: ListTile(
+                    leading: const Icon(Icons.qr_code_2),
+                    title: const Text('View QR'),
+                    subtitle: const Text('Scan with any authenticator app'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ViewQrScreen()),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Text('Backup', style: Theme.of(context).textTheme.titleMedium),
+                ),
+                Card(
+                  child: ListTile(
                     leading: const Icon(Icons.upload),
                     title: const Text('Export Credentials'),
-                    subtitle: const Text('Export your credentials to a file'),
+                    subtitle: const Text('Export your credentials to a CSV file'),
                     onTap: exportCredentials,
                   ),
                 ),
@@ -302,37 +305,9 @@ class SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Tools Section
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'Tools',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.qr_code_2),
-                    title: const Text('View QR'),
-                    subtitle: const Text('Scan with any authenticator app'),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ViewQrScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // About Section
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'About',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                  child: Text('About', style: Theme.of(context).textTheme.titleMedium),
                 ),
                 Card(
                   child: ListTile(

@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../utils/storage.dart';
 import '../utils/export_service.dart';
+import '../utils/import_service.dart';
 import '../utils/biometric_service.dart';
 import '../utils/runtime_key.dart';
 import 'reset_password_screen.dart';
@@ -129,6 +132,69 @@ class SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> importCredentials() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
+
+    if (result == null || result.files.isEmpty) {
+      return;
+    }
+
+    final file = File(result.files.single.path!);
+    final (success, message, newCreds) = await ImportService.importFromCsv(
+      file,
+    );
+
+    if (!mounted) return;
+
+    if (success && newCreds.isNotEmpty) {
+      // Show confirmation dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Import Credentials'),
+          content: Text(
+            'Found ${newCreds.length} new credential(s).\n\nDo you want to import them?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Import'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        final (added, addMessage) = await ImportService.addImportedCredentials(
+          newCreds,
+        );
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(addMessage),
+            duration: const Duration(seconds: 3),
+            backgroundColor: added ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,9 +205,29 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(8),
               children: [
-                // Security Section
+                // Display Section
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Text(
+                    'Display',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                Card(
+                  child: ListTile(
+                    leading: Icon(
+                      isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                    ),
+                    title: const Text('Theme'),
+                    subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode'),
+                    onTap: toggleTheme,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Security Section
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                   child: Text(
                     'Security',
                     style: Theme.of(context).textTheme.titleMedium,
@@ -206,24 +292,13 @@ class SettingsScreenState extends State<SettingsScreen> {
                     onTap: exportCredentials,
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Display Section
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text(
-                    'Display',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
+                const SizedBox(height: 8),
                 Card(
                   child: ListTile(
-                    leading: Icon(
-                      isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                    ),
-                    title: const Text('Theme'),
-                    subtitle: Text(isDarkMode ? 'Dark Mode' : 'Light Mode'),
-                    onTap: toggleTheme,
+                    leading: const Icon(Icons.download),
+                    title: const Text('Import Credentials'),
+                    subtitle: const Text('Import credentials from a CSV file'),
+                    onTap: importCredentials,
                   ),
                 ),
                 const SizedBox(height: 16),

@@ -1,0 +1,149 @@
+import 'dart:io';
+import 'dart:convert';
+import 'totp_store.dart';
+
+class ImportService {
+  // Simple CSV parser for quoted fields
+  static List<List<String>> parseCsv(String content) {
+    final lines = content.split('\n');
+    final rows = <List<String>>[];
+
+    for (final line in lines) {
+      if (line.trim().isEmpty) continue;
+
+      final row = <String>[];
+      var current = '';
+      var inQuotes = false;
+
+      for (var i = 0; i < line.length; i++) {
+        final char = line[i];
+
+        if (char == '"') {
+          if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+            // Escaped quote
+            current += '"';
+            i++;
+          } else {
+            // Toggle quote state
+            inQuotes = !inQuotes;
+          }
+        } else if (char == ',' && !inQuotes) {
+          row.add(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+
+      // Add last field
+      if (current.isNotEmpty || line.endsWith(',')) {
+        row.add(current.trim());
+      }
+
+      if (row.isNotEmpty) {
+        rows.add(row);
+      }
+    }
+
+    return rows;
+  }
+
+  static Future<(bool, String, List<Map<String, String>>)> importFromCsv(
+    File file,
+  ) async {
+    try {
+      if (!await file.exists()) {
+        return (false, 'File not found', <Map<String, String>>[]);
+      }
+
+      final content = await file.readAsString(encoding: utf8);
+      final rows = parseCsv(content);
+
+      if (rows.isEmpty) {
+        return (false, 'CSV file is empty', <Map<String, String>>[]);
+      }
+
+      // Skip header row (ID, Platform, Username, Secret, TOTP URL)
+      final dataRows = rows.sublist(1);
+
+      if (dataRows.isEmpty) {
+        return (false, 'No data rows found in CSV', <Map<String, String>>[]);
+      }
+
+      final existingCredentials = await TotpStore.load();
+      final existingIds = existingCredentials.map((c) => c['id']).toSet();
+
+      final newCredentials = <Map<String, String>>[];
+
+      for (final row in dataRows) {
+        if (row.length < 4) continue;
+
+        final platform = row[1].trim();
+        final username = row[2].trim();
+        final secret = row[3].trim().toUpperCase();
+
+        // Skip empty rows
+        if (platform.isEmpty || username.isEmpty || secret.isEmpty) {
+          continue;
+        }
+
+        final id = TotpStore.generateId(platform, username, secret);
+
+        // Only add if credential doesn't already exist
+        if (!existingIds.contains(id)) {
+          newCredentials.add({
+            'id': id,
+            'platform': platform,
+            'username': username,
+            'secretcode': secret,
+          });
+        }
+      }
+
+      if (newCredentials.isEmpty) {
+        return (
+          true,
+          'No new credentials found to import',
+          <Map<String, String>>[],
+        );
+      }
+
+      return (
+        true,
+        'Found ${newCredentials.length} new credential(s)',
+        newCredentials,
+      );
+    } catch (e) {
+      return (false, 'Import failed: ${e.toString()}', <Map<String, String>>[]);
+    }
+  }
+
+  /// Adds imported credentials to the store
+  static Future<(bool, String)> addImportedCredentials(
+    List<Map<String, String>> credentials,
+  ) async {
+    try {
+      if (credentials.isEmpty) {
+        return (false, 'No credentials to add');
+      }
+
+      final existing = await TotpStore.load();
+      final combined = [...existing, ...credentials];
+
+      // Sort by platform
+      combined.sort(
+        (a, b) => a['platform']!.toLowerCase().compareTo(
+          b['platform']!.toLowerCase(),
+        ),
+      );
+
+      await TotpStore.saveAll(combined);
+      return (
+        true,
+        'Successfully imported ${credentials.length} credential(s)',
+      );
+    } catch (e) {
+      return (false, 'Failed to add credentials: ${e.toString()}');
+    }
+  }
+}

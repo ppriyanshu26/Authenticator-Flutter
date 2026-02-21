@@ -96,7 +96,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        title: const Text('Reset Your Password'),
         scrolledUnderElevation: 0,
       ),
       body: Padding(

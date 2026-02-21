@@ -45,7 +45,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
 
   AppBar appBar(BuildContext context) {
     return AppBar(
-      title: const Text('Create Master Password'),
+      title: const Text('Create Your Password'),
       scrolledUnderElevation: 0,
     );
   }

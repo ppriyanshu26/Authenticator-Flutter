@@ -7,7 +7,7 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('About'), scrolledUnderElevation: 0),
+      appBar: AppBar(title: const Text('About CipherAuth'), scrolledUnderElevation: 0),
       body: Column(
         children: [
           Expanded(

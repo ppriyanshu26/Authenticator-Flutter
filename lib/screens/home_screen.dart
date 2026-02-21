@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../utils/totp_store.dart';
 import '../utils/totp.dart';
 import 'add_account_screen.dart';
@@ -83,6 +84,56 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  late final Map<String, IconData> platformIcons = {
+    'apple': FontAwesomeIcons.apple,
+    'amazon web services': FontAwesomeIcons.aws,
+    'amazon': FontAwesomeIcons.amazon,
+    'aws': FontAwesomeIcons.aws,
+    'bitbucket': FontAwesomeIcons.bitbucket,
+    'brave': FontAwesomeIcons.brave,
+    'chatgpt': FontAwesomeIcons.openai,
+    'cloudflare': FontAwesomeIcons.cloudflare,
+    'discord': FontAwesomeIcons.discord,
+    'dropbox': FontAwesomeIcons.dropbox,
+    'edge': FontAwesomeIcons.edge,
+    'facebook': FontAwesomeIcons.facebook,
+    'firefox': FontAwesomeIcons.firefox,
+    'github': FontAwesomeIcons.github,
+    'gitlab': FontAwesomeIcons.gitlab,
+    'google': FontAwesomeIcons.google,
+    'instagram': FontAwesomeIcons.instagram,
+    'linkedin': FontAwesomeIcons.linkedin,
+    'meta': FontAwesomeIcons.meta,
+    'microsoft': FontAwesomeIcons.microsoft,
+    'mozilla': FontAwesomeIcons.firefox,
+    'netflix': FontAwesomeIcons.film,
+    'openai': FontAwesomeIcons.openai,
+    'opera': FontAwesomeIcons.opera,
+    'pinterest': FontAwesomeIcons.pinterest,
+    'reddit': FontAwesomeIcons.reddit,
+    'safari': FontAwesomeIcons.safari,
+    'signal': FontAwesomeIcons.signal,
+    'snapchat': FontAwesomeIcons.snapchat,
+    'spotify': FontAwesomeIcons.spotify,
+    'steam': FontAwesomeIcons.steam,
+    'telegram': FontAwesomeIcons.telegram,
+    'twitch': FontAwesomeIcons.twitch,
+    'twitter': FontAwesomeIcons.x,
+    'whatsapp': FontAwesomeIcons.whatsapp,
+    'x': FontAwesomeIcons.x,
+    'youtube': FontAwesomeIcons.youtube,
+  };
+
+  IconData getPlatformIcon(String input) {
+    final text = input.toLowerCase().trim();
+    for (final key in platformIcons.keys) {
+      if (text.contains(key)) {
+        return platformIcons[key]!;
+      }
+    }
+    return FontAwesomeIcons.globe;
+  }
+
   Widget tile(int index, Map<String, String> item) {
     final user = item['username'] ?? '';
     final secret = item['secretcode']!;
@@ -101,7 +152,9 @@ class HomeScreenState extends State<HomeScreen> {
       final color = changeColor(remaining, period);
 
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        elevation: 2,
+        shadowColor: color.withValues(alpha: 0.3),
         child: GestureDetector(
           onTap: () {
             Clipboard.setData(ClipboardData(text: code));
@@ -174,7 +227,11 @@ class HomeScreenState extends State<HomeScreen> {
                       });
                     },
                   )
-                : null,
+                : Icon(
+                    getPlatformIcon(item['platform']!),
+                    size: 24,
+                    color: Colors.orange,
+                  ),
             title: Text(
               item['platform']!,
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -224,7 +281,8 @@ class HomeScreenState extends State<HomeScreen> {
       );
     } catch (e) {
       return Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        elevation: 2,
         child: ListTile(
           leading: selectionMode
               ? Checkbox(
@@ -237,7 +295,11 @@ class HomeScreenState extends State<HomeScreen> {
                     });
                   },
                 )
-              : null,
+              : Icon(
+                  getPlatformIcon(item['platform']!),
+                  size: 24,
+                  color: Colors.orange,
+                ),
           title: Text(
             item['platform']!,
             style: const TextStyle(fontWeight: FontWeight.bold),
@@ -265,6 +327,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Filter totps based on search query
     final filteredTotps = totps.where((item) {
       final platform = item['platform']?.toLowerCase() ?? '';
       return platform.startsWith(searchQuery.toLowerCase());
@@ -313,16 +376,16 @@ class HomeScreenState extends State<HomeScreen> {
                       searchQuery = value;
                     });
                   },
-                  decoration: const InputDecoration(
-                    hintText: 'Search accounts...',
+                  decoration: InputDecoration(
+                    hintText: 'Search from ${totps.length} accounts',
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    prefixIcon: Icon(Icons.search, size: 20),
+                    prefixIcon: const Icon(Icons.search, size: 20),
                   ),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
@@ -334,12 +397,10 @@ class HomeScreenState extends State<HomeScreen> {
                   : searchQuery.isNotEmpty && filteredTotps.isEmpty
                   ? const Center(child: Text('No platforms match your search'))
                   : ListView.builder(
-                      itemCount: filteredTotps.isEmpty
-                          ? totps.length
-                          : filteredTotps.length,
+                      itemCount: filteredTotps.length,
                       itemBuilder: (_, i) => tile(
-                        i,
-                        filteredTotps.isEmpty ? totps[i] : filteredTotps[i],
+                        totps.indexOf(filteredTotps[i]),
+                        filteredTotps[i],
                       ),
                     ),
             ),

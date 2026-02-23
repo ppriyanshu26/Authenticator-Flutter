@@ -118,7 +118,7 @@ class SupportScreenState extends State<SupportScreen> {
                   ),
                   const SizedBox(height: 12),
                   const SelectableText(
-                    'As everythig is stored locally and there is no account system, there are no user obligations or account-related terms. The main responsibility is to keep your master password secure, as it is the key to all your credentials.',
+                    'As everything is stored locally and there is no account system, there are no user obligations or account-related terms. The main responsibility is to keep your master password secure, as it is the key to all your credentials.',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ]),

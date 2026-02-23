@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 import 'crypto.dart';
+import 'totp_store.dart';
 
 class SyncConnection {
   static const int syncPort = 34568;
@@ -79,11 +80,30 @@ class SyncConnection {
                 );
                 final remoteCredentials =
                     jsonDecode(decryptedRemoteData) as List<dynamic>;
+                final remoteDeletionLog = <String, int>{};
+                final deletionLogData =
+                    message['deletion_log'] as Map<String, dynamic>?;
+                if (deletionLogData != null) {
+                  deletionLogData.forEach((k, v) {
+                    remoteDeletionLog[k] = (v as num).toInt();
+                  });
+                }
+
+                final localDeletionLog = await TotpStore.getDeletionLog();
 
                 final mergedCredentials = mergeCredentials(
                   localCredentials,
                   remoteCredentials.cast<Map<String, dynamic>>(),
+                  localDeletionLog,
+                  remoteDeletionLog,
                 );
+                final mergedDeletionLog = <String, int>{...localDeletionLog};
+                for (final entry in remoteDeletionLog.entries) {
+                  if (!mergedDeletionLog.containsKey(entry.key) ||
+                      entry.value < mergedDeletionLog[entry.key]!) {
+                    mergedDeletionLog[entry.key] = entry.value;
+                  }
+                }
 
                 final mergedJson = jsonEncode(mergedCredentials);
                 final encryptedMergedData = await Crypto.encryptAesWithPassword(
@@ -94,6 +114,7 @@ class SyncConnection {
                 final mergedMessage = jsonEncode({
                   'type': 'MERGED_DATA',
                   'encrypted_data': encryptedMergedData,
+                  'deletion_log': mergedDeletionLog,
                 });
                 socket.write('$mergedMessage\n');
                 await socket.flush();
@@ -172,8 +193,7 @@ class SyncConnection {
               );
             });
           })
-          .catchError((e) {
-          });
+          .catchError((e) {});
     });
   }
 
@@ -218,9 +238,12 @@ class SyncConnection {
                 masterPassword,
               );
 
+              final localDeletionLog = await TotpStore.getDeletionLog();
+
               final response = jsonEncode({
                 'type': 'DATA_RESPONSE',
                 'encrypted_data': encryptedData,
+                'deletion_log': localDeletionLog,
               });
               socket.write('$response\n');
               await socket.flush();
@@ -232,6 +255,16 @@ class SyncConnection {
               );
               final mergedCredentials =
                   jsonDecode(decryptedMergedData) as List<dynamic>;
+
+              final mergedDeletionLog = <String, int>{};
+              final deletionLogData =
+                  message['deletion_log'] as Map<String, dynamic>?;
+              if (deletionLogData != null) {
+                deletionLogData.forEach((k, v) {
+                  mergedDeletionLog[k] = (v as num).toInt();
+                });
+              }
+
               final typedMergedCredentials = <Map<String, String>>[];
               for (final cred in mergedCredentials) {
                 if (cred is Map) {
@@ -243,6 +276,11 @@ class SyncConnection {
                   });
                 }
               }
+
+              await TotpStore.saveAllAndMerge(
+                typedMergedCredentials,
+                mergedDeletionLog,
+              );
 
               onComplete(true, typedMergedCredentials);
               socket.close();
@@ -264,17 +302,24 @@ class SyncConnection {
   static List<Map<String, String>> mergeCredentials(
     List<Map<String, String>> localCreds,
     List<Map<String, dynamic>> remoteCreds,
+    Map<String, int> localDeletionLog,
+    Map<String, int> remoteDeletionLog,
   ) {
+    final allDeletedIds = <String>{
+      ...localDeletionLog.keys,
+      ...remoteDeletionLog.keys,
+    };
+
     final merged = <String, Map<String, String>>{};
     for (final cred in localCreds) {
       final id = cred['id'];
-      if (id != null) {
+      if (id != null && !allDeletedIds.contains(id)) {
         merged[id] = Map.from(cred);
       }
     }
     for (final cred in remoteCreds) {
       final id = cred['id']?.toString();
-      if (id != null) {
+      if (id != null && !allDeletedIds.contains(id)) {
         merged[id] = {
           'id': id,
           'platform': (cred['platform'] ?? '').toString(),

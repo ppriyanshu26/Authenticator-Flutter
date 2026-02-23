@@ -5,10 +5,39 @@ import 'crypto.dart';
 
 class TotpStore {
   static const storeKey = 'totp_store';
+  static const deletionLogKey = 'totp_deletion_log';
 
   static String generateId(String platform, String username, String secret) {
     final input = '$platform$username$secret';
     return sha256.convert(input.codeUnits).toString();
+  }
+
+  static Future<Map<String, int>> getDeletionLog() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(deletionLogKey);
+    if (jsonStr == null || jsonStr.isEmpty) return {};
+    try {
+      final decoded = jsonDecode(jsonStr) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, (v as num).toInt()));
+    } catch (e) {
+      return {};
+    }
+  }
+
+  static Future<void> _trackDeletedIds(List<String> deletedIds) async {
+    if (deletedIds.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final existing = await getDeletionLog();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    for (final id in deletedIds) {
+      existing[id] = timestamp;
+    }
+    await prefs.setString(deletionLogKey, jsonEncode(existing));
+  }
+
+  static Future<List<String>> getDeletedIds() async {
+    final deletionLog = await getDeletionLog();
+    return deletionLog.keys.toList();
   }
 
   static Future<List<Map<String, String>>> load() async {
@@ -77,8 +106,62 @@ class TotpStore {
   }
 
   static Future<void> saveAll(List<Map<String, String>> items) async {
+    final currentList = await load();
+    final currentIds = {
+      for (final item in currentList)
+        if (item['id'] != null) item['id']!,
+    };
+    final newIds = {
+      for (final item in items)
+        if (item['id'] != null) item['id']!,
+    };
+    final deletedIds = currentIds.difference(newIds).toList();
+
+    if (deletedIds.isNotEmpty) {
+      await _trackDeletedIds(deletedIds);
+    }
+
     final encrypted = await Crypto.encryptAes(jsonEncode(items));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(storeKey, encrypted);
+  }
+
+  static Future<void> saveAllAndMerge(
+    List<Map<String, String>> items,
+    Map<String, int> remoteDeletedIds,
+  ) async {
+    final currentList = await load();
+    final currentIds = {
+      for (final item in currentList)
+        if (item['id'] != null) item['id']!,
+    };
+    final newIds = {
+      for (final item in items)
+        if (item['id'] != null) item['id']!,
+    };
+    final locallyDeletedIds = currentIds.difference(newIds).toList();
+
+    final existingLog = await getDeletionLog();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+
+    for (final id in locallyDeletedIds) {
+      existingLog[id] = timestamp;
+    }
+    for (final entry in remoteDeletedIds.entries) {
+      if (!existingLog.containsKey(entry.key) ||
+          entry.value < existingLog[entry.key]!) {
+        existingLog[entry.key] = entry.value;
+      }
+    }
+
+    final filteredItems = items
+        .where((item) => !existingLog.containsKey(item['id']))
+        .toList();
+
+    final encrypted = await Crypto.encryptAes(jsonEncode(filteredItems));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(storeKey, encrypted);
+
+    await prefs.setString(deletionLogKey, jsonEncode(existingLog));
   }
 }

@@ -59,19 +59,12 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/icon/icon.png',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(height: 16),
+            Image.asset('assets/icon/icon.png', width: 100, height: 100),
+            const SizedBox(height: 12),
             const Text(
-              'Your Credentials, Your Device. Offline Encrypted and completely private',
+              'Your Credentials, Your Device. Offline Encrypted and Completely Private',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 32),
             TextField(
@@ -110,7 +103,7 @@ class CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(error!, style: const TextStyle(color: Colors.red)),
               ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

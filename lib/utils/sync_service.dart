@@ -130,7 +130,7 @@ class CipherAuthDiscovery {
                   return;
                 }
 
-                final deviceIp = message['ip'] ?? datagram.address.address;
+                final deviceIp = datagram.address.address;
 
                 devices[deviceName] = {
                   'name': deviceName,

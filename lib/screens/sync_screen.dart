@@ -239,15 +239,7 @@ class SyncScreenState extends State<SyncScreen> {
               ],
             ),
           ),
-          if (discoveredDevices.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: ElevatedButton.icon(
-                onPressed: isDiscovering ? null : discoverDevices,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Search Again'),
-              ),
-            ),
+
           Expanded(
             child: discoveredDevices.isEmpty
                 ? Center(

@@ -23,6 +23,7 @@ class ViewQrScreenState extends State<ViewQrScreen> {
   bool canUseBiometrics = false;
   bool isBioEnabled = false;
   bool isAuthenticating = false;
+  String? error;
 
   @override
   void initState() {
@@ -58,6 +59,11 @@ class ViewQrScreenState extends State<ViewQrScreen> {
   }
 
   Future<void> verifyPassword() async {
+    if (passwordController.text.isEmpty) {
+      setState(() => error = 'Password cannot be empty');
+      return;
+    }
+
     setState(() => isLoading = true);
     try {
       final isValid = await Storage.verifyMasterPassword(
@@ -69,22 +75,13 @@ class ViewQrScreenState extends State<ViewQrScreen> {
         setState(() {
           totps = list;
           isPasswordVerified = true;
+          error = null;
         });
       } else {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Incorrect password'),
-            duration: Duration(seconds: 2),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() => error = 'Wrong password');
       }
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-      );
+      setState(() => error = 'Error: ${e.toString()}');
     } finally {
       setState(() => isLoading = false);
     }
@@ -107,33 +104,26 @@ class ViewQrScreenState extends State<ViewQrScreen> {
             totps = list;
             isPasswordVerified = true;
             isAuthenticating = false;
+            error = null;
           });
         } catch (e) {
           if (!mounted) return;
-          setState(() => isAuthenticating = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-          );
+          setState(() {
+            isAuthenticating = false;
+            error = 'Error: ${e.toString()}';
+          });
         }
       } else {
-        setState(() => isAuthenticating = false);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Biometric password not found'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() {
+          isAuthenticating = false;
+          error = 'Biometric password not found. Please use password';
+        });
       }
     } else {
-      setState(() => isAuthenticating = false);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Biometric authentication failed'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      setState(() {
+        isAuthenticating = false;
+        error = 'Biometric authentication failed';
+      });
     }
   }
 
@@ -156,6 +146,12 @@ class ViewQrScreenState extends State<ViewQrScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
+                'This app was developed keeping privacy in mind, so be sure with who you share the QR codes, else just use the sync feature to securely sync with your devices',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 24),
+              const Text(
                 'Enter your password to view QR codes',
                 style: TextStyle(fontSize: 16),
               ),
@@ -165,7 +161,7 @@ class ViewQrScreenState extends State<ViewQrScreen> {
                 obscureText: !isPasswordVisible,
                 onSubmitted: (_) => verifyPassword(),
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  labelText: 'Master Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -183,6 +179,14 @@ class ViewQrScreenState extends State<ViewQrScreen> {
                   ),
                 ),
               ),
+              if (error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
@@ -322,13 +326,6 @@ class ViewQrScreenState extends State<ViewQrScreen> {
                 onTap: () {
                   final secretKey = item['secretcode']!;
                   Clipboard.setData(ClipboardData(text: secretKey));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Secret key copied'),
-                      duration: const Duration(seconds: 2),
-                      backgroundColor: Colors.green[600],
-                    ),
-                  );
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

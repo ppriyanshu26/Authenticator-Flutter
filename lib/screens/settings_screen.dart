@@ -6,6 +6,7 @@ import '../utils/export_service.dart';
 import '../utils/import_service.dart';
 import '../utils/biometric_service.dart';
 import '../utils/runtime_key.dart';
+import '../utils/app_lifecycle_manager.dart';
 import 'reset_password_screen.dart';
 import 'sync_screen.dart';
 import 'view_qr_screen.dart';
@@ -133,62 +134,69 @@ class SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> importCredentials() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['csv'],
-    );
+    try {
+      AppLifecycleManager.preventPasswordClear = true;
+      AppLifecycleManager.suppressReauthOnResume = true;
 
-    if (result == null || result.files.isEmpty) {
-      return;
-    }
-
-    final file = File(result.files.single.path!);
-    final (success, message, newCreds) = await ImportService.importFromCsv(
-      file,
-    );
-
-    if (!mounted) return;
-
-    if (success && newCreds.isNotEmpty) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Import Credentials'),
-          content: Text(
-            'Found ${newCreds.length} new credential(s).\n\nDo you want to import them?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Import'),
-            ),
-          ],
-        ),
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
       );
 
-      if (confirmed == true) {
-        final (added, addMessage) = await ImportService.addImportedCredentials(
-          newCreds,
+      if (result == null || result.files.isEmpty) {
+        return;
+      }
+
+      final file = File(result.files.single.path!);
+      final (success, message, newCreds) = await ImportService.importFromCsv(
+        file,
+      );
+
+      if (!mounted) return;
+
+      if (success && newCreds.isNotEmpty) {
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Import Credentials'),
+            content: Text(
+              'Found ${newCreds.length} new credential(s).\n\nDo you want to import them?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Import'),
+              ),
+            ],
+          ),
         );
-        if (!mounted) return;
+
+        if (confirmed == true) {
+          final (added, addMessage) =
+              await ImportService.addImportedCredentials(newCreds);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(addMessage, style: TextStyle(color: added ? Colors.green : Colors.red)),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(addMessage, style: TextStyle(color: added ? Colors.green : Colors.red)),
+            content: Text(message),
             duration: const Duration(seconds: 3),
           ),
         );
       }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          duration: const Duration(seconds: 3),
-        ),
-      );
+    } finally {
+      AppLifecycleManager.preventPasswordClear = false;
+      AppLifecycleManager.suppressReauthOnResume = false;
     }
   }
 

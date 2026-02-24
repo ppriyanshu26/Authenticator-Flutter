@@ -16,6 +16,8 @@ class AppLifecycleManager extends WidgetsBindingObserver {
   bool inBg = false;
   VoidCallback? onAppResumed;
   GlobalKey<NavigatorState>? navigatorKey;
+  static bool preventPasswordClear = false;
+  static bool suppressReauthOnResume = false;
 
   Future<void> initialize() async {
     WidgetsBinding.instance.addObserver(this);
@@ -39,7 +41,9 @@ class AppLifecycleManager extends WidgetsBindingObserver {
     lastState = state;
 
     if (state == AppLifecycleState.resumed && inBg) {
-      handleAppResumedFromBackground();
+      if (!suppressReauthOnResume) {
+        handleAppResumedFromBackground();
+      }
       inBg = false;
     } else if (state == AppLifecycleState.paused) {
       handleAppPaused();
@@ -54,7 +58,9 @@ class AppLifecycleManager extends WidgetsBindingObserver {
 
   void handleAppPaused() {
     inBg = true;
-    RuntimeKey.rawPassword = null;
+    if (!preventPasswordClear) {
+      RuntimeKey.rawPassword = null;
+    }
   }
 
   bool get isAppActive => lastState == AppLifecycleState.resumed;

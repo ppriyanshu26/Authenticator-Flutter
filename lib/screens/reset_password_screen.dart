@@ -65,9 +65,13 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
         oldPasswordController.text,
         newPasswordController.text,
       );
-      await BiometricService.disableBiometric();
+      await BiometricService.updateBiometricPassword(
+        newPasswordController.text,
+      );
       RuntimeKey.rawPassword = newPasswordController.text;
 
+      if (!mounted) return;
+      Navigator.pop(context, true);
     } catch (e) {
       setState(() {
         error = 'Error resetting password';

@@ -86,6 +86,7 @@ class SettingsScreenState extends State<SettingsScreen> {
         );
       } catch (e) {
         if (!mounted) return;
+        setState(() => isBiometricEnabled = true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to disable biometric', style: const TextStyle(color: Colors.red)),
@@ -184,7 +185,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message, style: const TextStyle(color: Colors.orange)),
+          content: Text(message),
           duration: const Duration(seconds: 3),
         ),
       );

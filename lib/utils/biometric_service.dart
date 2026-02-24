@@ -69,6 +69,14 @@ class BiometricService {
     await passStore.delete(key: passKey);
   }
 
+  static Future<void> updateBiometricPassword(
+    String newPassword,
+  ) async {
+    if (await isBiometricEnabled()) {
+      await passStore.write(key: passKey, value: newPassword);
+    }
+  }
+
   static Future<bool> isBiometricEnabled() async {
     final value = await passStore.read(key: bioKey);
     return value == 'true';

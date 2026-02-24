@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,7 +17,7 @@ class AddAccountScreen extends StatefulWidget {
 class AddAccountScreenState extends State<AddAccountScreen>
     with SingleTickerProviderStateMixin {
   late TabController tabController;
-  late final MobileScannerController? scannerController;
+  MobileScannerController? scannerController;
 
   final platformCtrl = TextEditingController();
   final usernameCtrl = TextEditingController();
@@ -24,28 +25,29 @@ class AddAccountScreenState extends State<AddAccountScreen>
 
   bool fromQr = false;
   bool scanned = false;
+  bool isScanningImage = false;
   String? error;
 
   @override
   void initState() {
     super.initState();
     tabController = TabController(length: 2, vsync: this);
+
     if (Platform.isAndroid || Platform.isIOS) {
       scannerController = MobileScannerController(
         detectionSpeed: DetectionSpeed.noDuplicates,
         facing: CameraFacing.back,
       );
-    } else {
-      scannerController = null;
     }
   }
 
   @override
   void dispose() {
-    if (Platform.isAndroid || Platform.isIOS) {
-      scannerController?.dispose();
-    }
+    scannerController?.dispose();
     tabController.dispose();
+    platformCtrl.dispose();
+    usernameCtrl.dispose();
+    secretCtrl.dispose();
     super.dispose();
   }
 
@@ -99,8 +101,6 @@ class AddAccountScreenState extends State<AddAccountScreen>
     secretCtrl.text = secret.toUpperCase();
 
     fromQr = true;
-    tabController.animateTo(1);
-    setState(() {});
   }
 
   void onDetect(BarcodeCapture capture) async {
@@ -112,15 +112,88 @@ class AddAccountScreenState extends State<AddAccountScreen>
     if (value == null || !value.startsWith('otpauth://')) return;
 
     scanned = true;
-
-    if (Platform.isAndroid || Platform.isIOS) {
-      await scannerController?.stop();
-    }
+    await scannerController?.stop();
 
     if (!mounted) return;
 
     populateFromOtpAuth(value);
+    tabController.animateTo(1);
     setState(() {});
+  }
+
+  Future<void> scanQrFromImage() async {
+    try {
+      final picker = ImagePicker();
+
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        imageQuality: 70,
+      );
+
+      if (image == null) return;
+
+      setState(() => isScanningImage = true);
+
+      String? value;
+
+      if (Platform.isAndroid || Platform.isIOS) {
+        final inputImage = InputImage.fromFilePath(image.path);
+        final barcodeScanner = BarcodeScanner();
+
+        try {
+          final barcodes = await barcodeScanner
+              .processImage(inputImage)
+              .timeout(const Duration(seconds: 3));
+
+          if (barcodes.isNotEmpty) {
+            value = barcodes.first.rawValue;
+          }
+        } catch (_) {}
+
+        await barcodeScanner.close();
+      } else {
+        try {
+          value = await QRDecoder.decodeFromFile(image.path)
+              .timeout(const Duration(seconds: 3));
+        } catch (_) {}
+      }
+
+      setState(() => isScanningImage = false);
+
+      if (value == null || !value.startsWith('otpauth://')) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Unable to read QR code',
+              style: TextStyle(color: Colors.red),
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+
+      if (!mounted) return;
+
+      populateFromOtpAuth(value);
+      tabController.animateTo(1);
+      setState(() {});
+    } catch (_) {
+      setState(() => isScanningImage = false);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Error scanning image',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> saveManual() async {
@@ -167,67 +240,11 @@ class AddAccountScreenState extends State<AddAccountScreen>
     Navigator.pop(context, true);
   }
 
-  Future<void> scanQrFromImage() async {
-    try {
-      final picker = ImagePicker();
-      final image = await picker.pickImage(source: ImageSource.gallery);
-
-      if (image == null) return;
-
-      String? value;
-
-      if (Platform.isAndroid || Platform.isIOS) {
-        final inputImage = InputImage.fromFilePath(image.path);
-        final barcodeScanner = BarcodeScanner();
-
-        final barcodes = await barcodeScanner.processImage(inputImage);
-        await barcodeScanner.close();
-
-        if (barcodes.isEmpty) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))),
-          );
-          return;
-        }
-
-        value = barcodes.first.rawValue;
-      } else {
-        try {
-          value = await QRDecoder.decodeFromFile(image.path);
-        } catch (e) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))));
-          return;
-        }
-      }
-
-      if (value == null || !value.startsWith('otpauth://')) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Invalid TOTP QR code', style: TextStyle(color: Colors.red))));
-        return;
-      }
-
-      if (!mounted) return;
-      populateFromOtpAuth(value);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add Account'),
-        scrolledUnderElevation: 0,
         bottom: TabBar(
           controller: tabController,
           tabs: const [
@@ -246,6 +263,13 @@ class AddAccountScreenState extends State<AddAccountScreen>
                   controller: scannerController,
                   onDetect: onDetect,
                 ),
+                if (isScanningImage)
+                  Container(
+                    color: Colors.black54,
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
                 Positioned(
                   bottom: 16,
                   left: 0,
@@ -255,10 +279,6 @@ class AddAccountScreenState extends State<AddAccountScreen>
                       onPressed: scanQrFromImage,
                       icon: const Icon(Icons.image),
                       label: const Text('Browse from Device'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
                     ),
                   ),
                 ),
@@ -266,22 +286,10 @@ class AddAccountScreenState extends State<AddAccountScreen>
             )
           else
             Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.smartphone, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Use your mobile to scan',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton.icon(
-                    onPressed: scanQrFromImage,
-                    icon: const Icon(Icons.image),
-                    label: const Text('Browse from Device'),
-                  ),
-                ],
+              child: ElevatedButton.icon(
+                onPressed: scanQrFromImage,
+                icon: const Icon(Icons.image),
+                label: const Text('Browse from Device'),
               ),
             ),
           Padding(
@@ -290,7 +298,6 @@ class AddAccountScreenState extends State<AddAccountScreen>
               children: [
                 TextField(
                   controller: platformCtrl,
-                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Platform',
                     border: OutlineInputBorder(),
@@ -300,7 +307,6 @@ class AddAccountScreenState extends State<AddAccountScreen>
                 TextField(
                   controller: usernameCtrl,
                   readOnly: fromQr,
-                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Username / Email',
                     border: OutlineInputBorder(),
@@ -310,7 +316,6 @@ class AddAccountScreenState extends State<AddAccountScreen>
                 TextField(
                   controller: secretCtrl,
                   readOnly: fromQr,
-                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Secret key',
                     border: OutlineInputBorder(),

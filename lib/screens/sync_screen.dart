@@ -63,11 +63,10 @@ class SyncScreenState extends State<SyncScreen> {
             await TotpStore.saveAll(mergedCredentials);
             if (!mounted) return;
             syncOccurred = true;
-            final message = '✅ SYNC COMPLETE!';
+            final message = 'SYNC COMPLETE!';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(message),
-                backgroundColor: Colors.green,
+                content: Text(message, style: const TextStyle(color: Colors.green)),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -119,7 +118,7 @@ class SyncScreenState extends State<SyncScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('❌ No password set')));
+      ).showSnackBar(const SnackBar(content: Text('No password set', style: TextStyle(color: Colors.red))));
       return;
     }
 
@@ -127,7 +126,7 @@ class SyncScreenState extends State<SyncScreen> {
     if (masterPassword == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Cannot retrieve master password')),
+        const SnackBar(content: Text('Cannot retrieve master password', style: TextStyle(color: Colors.red))),
       );
       return;
     }
@@ -161,21 +160,17 @@ class SyncScreenState extends State<SyncScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ SYNC COMPLETE!'),
-          backgroundColor: Colors.green,
+          content: Text('SYNC COMPLETE!', style: TextStyle(color: Colors.green)),
           duration: Duration(seconds: 2),
         ),
       );
     } else {
       final reason = result['reason'] ?? 'unknown_error';
-      final message = reason == 'password_mismatch'
-          ? '❌ PASSWORD MISMATCH'
-          : '❌ Sync failed: $reason';
+      final message = reason == 'password_mismatch' ? 'PASSWORD MISMATCH' : 'Sync failed';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
+          content: Text(message, style: const TextStyle(color: Colors.red)),
           duration: const Duration(seconds: 2),
         ),
       );

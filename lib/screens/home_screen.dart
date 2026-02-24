@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../utils/totp_store.dart';
@@ -134,9 +135,9 @@ class HomeScreenState extends State<HomeScreen> {
     return FontAwesomeIcons.globe;
   }
 
-  String truncate(String text, {int maxLength = 30}) {
-    if (text.length > maxLength) {
-      return '${text.substring(0, maxLength-5)}...';
+  String truncate(String text, {int maxLength = 27}) {
+    if ((Platform.isAndroid || Platform.isIOS) && text.length > maxLength) {
+      return '${text.substring(0, maxLength - 2)}...';
     }
     return text;
   }
@@ -240,7 +241,7 @@ class HomeScreenState extends State<HomeScreen> {
                     color: Colors.orange,
                   ),
             title: Text(
-              truncate(item['platform']!, maxLength: 20),
+              truncate(item['platform']!, maxLength: 18),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             subtitle: Text(

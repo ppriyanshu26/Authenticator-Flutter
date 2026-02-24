@@ -67,8 +67,8 @@ class SettingsScreenState extends State<SettingsScreen> {
           setState(() => isBiometricEnabled = false);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(error ?? 'Failed to enable biometric'),
-              backgroundColor: Colors.red,
+              content: Text(error ?? 'Failed to enable biometric', style: const TextStyle(color: Colors.red)),
+              duration: const Duration(seconds: 2),
             ),
           );
         }
@@ -88,8 +88,8 @@ class SettingsScreenState extends State<SettingsScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to disable biometric: $e'),
-            backgroundColor: Colors.red,
+            content: Text('Failed to disable biometric', style: const TextStyle(color: Colors.red)),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -125,9 +125,8 @@ class SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message, style: TextStyle(color: success ? Colors.green : Colors.red)),
         duration: const Duration(seconds: 3),
-        backgroundColor: success ? Colors.green : Colors.red,
       ),
     );
   }
@@ -177,18 +176,16 @@ class SettingsScreenState extends State<SettingsScreen> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(addMessage),
+            content: Text(addMessage, style: TextStyle(color: added ? Colors.green : Colors.red)),
             duration: const Duration(seconds: 3),
-            backgroundColor: added ? Colors.green : Colors.red,
           ),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message),
+          content: Text(message, style: const TextStyle(color: Colors.orange)),
           duration: const Duration(seconds: 3),
-          backgroundColor: Colors.orange,
         ),
       );
     }

@@ -186,7 +186,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
         if (barcodes.isEmpty) {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No QR code found in image')),
+            const SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))),
           );
           return;
         }
@@ -199,7 +199,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
           if (!mounted) return;
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Error scanning image: $e')));
+          ).showSnackBar(SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))));
           return;
         }
       }
@@ -208,7 +208,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid TOTP QR code')));
+        ).showSnackBar(SnackBar(content: Text('Invalid TOTP QR code', style: TextStyle(color: Colors.red))));
         return;
       }
 
@@ -218,7 +218,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error scanning image')));
+      ).showSnackBar(SnackBar(content: Text('Error scanning image', style: TextStyle(color: Colors.red))));
     }
   }
 

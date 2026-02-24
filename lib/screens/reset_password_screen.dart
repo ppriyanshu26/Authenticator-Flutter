@@ -68,17 +68,9 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
       await BiometricService.disableBiometric();
       RuntimeKey.rawPassword = newPasswordController.text;
 
-      if (!mounted) return;
-      Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset successfully'),
-          duration: Duration(seconds: 2),
-        ),
-      );
     } catch (e) {
       setState(() {
-        error = 'Error resetting password: ${e.toString()}';
+        error = 'Error resetting password';
         isLoading = false;
       });
     }

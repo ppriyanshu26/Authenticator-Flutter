@@ -24,6 +24,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
 
   bool fromQr = false;
   bool scanned = false;
+  String? error;
 
   @override
   void initState() {
@@ -127,8 +128,27 @@ class AddAccountScreenState extends State<AddAccountScreen>
     final username = usernameCtrl.text.trim();
     final secret = secretCtrl.text.replaceAll(' ', '').toUpperCase();
 
-    if (platform.isEmpty || username.isEmpty || secret.isEmpty) return;
-    if (!isValidBase32(secret)) return;
+    if (platform.isEmpty) {
+      setState(() => error = 'Platform cannot be empty');
+      return;
+    }
+
+    if (username.isEmpty) {
+      setState(() => error = 'Username cannot be empty');
+      return;
+    }
+
+    if (secret.isEmpty) {
+      setState(() => error = 'Secret key cannot be empty');
+      return;
+    }
+
+    if (!isValidBase32(secret)) {
+      setState(() => error = 'Invalid secret key format');
+      return;
+    }
+
+    setState(() => error = null);
 
     final url = buildTotpUrl(
       platform: platform,
@@ -139,10 +159,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
     final added = await TotpStore.add(platform, url);
 
     if (!added) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Account already exists')));
+      setState(() => error = 'Account already exists');
       return;
     }
 
@@ -273,6 +290,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
               children: [
                 TextField(
                   controller: platformCtrl,
+                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Platform',
                     border: OutlineInputBorder(),
@@ -282,6 +300,7 @@ class AddAccountScreenState extends State<AddAccountScreen>
                 TextField(
                   controller: usernameCtrl,
                   readOnly: fromQr,
+                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Username / Email',
                     border: OutlineInputBorder(),
@@ -291,12 +310,22 @@ class AddAccountScreenState extends State<AddAccountScreen>
                 TextField(
                   controller: secretCtrl,
                   readOnly: fromQr,
+                  onSubmitted: (_) => saveManual(),
                   decoration: const InputDecoration(
                     labelText: 'Secret key',
                     border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
+                if (error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Text(
+                      error!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ElevatedButton(
                   onPressed: saveManual,
                   child: const Text('Save'),

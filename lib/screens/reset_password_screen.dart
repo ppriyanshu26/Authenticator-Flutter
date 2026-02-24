@@ -107,6 +107,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
               TextField(
                 controller: oldPasswordController,
                 obscureText: obscureOld,
+                onSubmitted: (_) => resetPassword(),
                 decoration: InputDecoration(
                   labelText: 'Old Password',
                   border: const OutlineInputBorder(),
@@ -122,6 +123,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
               TextField(
                 controller: newPasswordController,
                 obscureText: obscureNew,
+                onSubmitted: (_) => resetPassword(),
                 decoration: InputDecoration(
                   labelText: 'New Password',
                   border: const OutlineInputBorder(),
@@ -137,6 +139,7 @@ class ResetPasswordScreenState extends State<ResetPasswordScreen> {
               TextField(
                 controller: confirmPasswordController,
                 obscureText: obscureConfirm,
+                onSubmitted: (_) => resetPassword(),
                 decoration: InputDecoration(
                   labelText: 'Confirm New Password',
                   border: const OutlineInputBorder(),

@@ -12,6 +12,37 @@ class TotpStore {
     return sha256.convert(input.codeUnits).toString();
   }
 
+  static String getFormattedTimestamp() {
+    final now = DateTime.now();
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = (now.year % 100).toString().padLeft(2, '0');
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    final second = now.second.toString().padLeft(2, '0');
+    return '$day$month$year $hour$minute$second';
+  }
+
+  static int parseTimestampToMillis(String timestamp) {
+    try {
+      final parts = timestamp.split(' ');
+      if (parts.length != 2) return 0;
+      final datePart = parts[0];
+      final timePart = parts[1];
+      if (datePart.length != 6 || timePart.length != 6) return 0;
+      final day = int.parse(datePart.substring(0, 2));
+      final month = int.parse(datePart.substring(2, 4));
+      final year = 2000 + int.parse(datePart.substring(4, 6));
+      final hour = int.parse(timePart.substring(0, 2));
+      final minute = int.parse(timePart.substring(2, 4));
+      final second = int.parse(timePart.substring(4, 6));
+      final dateTime = DateTime(year, month, day, hour, minute, second);
+      return dateTime.millisecondsSinceEpoch;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   static Future<Map<String, int>> getDeletionLog() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonStr = prefs.getString(deletionLogKey);
@@ -31,6 +62,16 @@ class TotpStore {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     for (final id in deletedIds) {
       existing[id] = timestamp;
+    }
+    await prefs.setString(deletionLogKey, jsonEncode(existing));
+  }
+
+  static Future<void> _removeFromDeletionLog(List<String> ids) async {
+    if (ids.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final existing = await getDeletionLog();
+    for (final id in ids) {
+      existing.remove(id);
     }
     await prefs.setString(deletionLogKey, jsonEncode(existing));
   }
@@ -55,6 +96,7 @@ class TotpStore {
         'platform': e['platform'] as String,
         'username': e['username'] as String,
         'secretcode': e['secretcode'] as String,
+        'createdAt': e['createdAt'] as String? ?? '',
       };
     }).toList();
   }
@@ -90,6 +132,7 @@ class TotpStore {
       'platform': platform,
       'username': username,
       'secretcode': secret,
+      'createdAt': getFormattedTimestamp(),
     };
 
     list.add(newItem);
@@ -154,9 +197,23 @@ class TotpStore {
       }
     }
 
-    final filteredItems = items
-        .where((item) => !existingLog.containsKey(item['id']))
-        .toList();
+    final List<String> resurrectedIds = [];
+    final filteredItems = items.where((item) {
+      final itemId = item['id'];
+      if (!existingLog.containsKey(itemId)) {
+        return true;
+      }
+      final createdAtStr = item['createdAt'] ?? '';
+      final createdAtMillis = parseTimestampToMillis(createdAtStr);
+      final deletedAtMillis = existingLog[itemId] ?? 0;
+      if (createdAtMillis > deletedAtMillis) {
+        resurrectedIds.add(itemId!);
+        return true;
+      }
+      return false;
+    }).toList();
+
+    await _removeFromDeletionLog(resurrectedIds);
 
     final encrypted = await Crypto.encryptAes(jsonEncode(filteredItems));
     final prefs = await SharedPreferences.getInstance();

@@ -27,9 +27,11 @@ class SyncMerge {
 
     return list;
   }
+
   static String credentialsToJson(List<Map<String, String>> credentials) {
     return jsonEncode(credentials);
   }
+
   static List<Map<String, String>> jsonToCredentials(String json) {
     try {
       final List<dynamic> decoded = jsonDecode(json);
@@ -39,6 +41,7 @@ class SyncMerge {
           'platform': e['platform'] as String? ?? '',
           'username': e['username'] as String? ?? '',
           'secretcode': e['secretcode'] as String? ?? '',
+          'createdAt': e['createdAt'] as String? ?? '',
         };
       }).toList();
     } catch (e) {

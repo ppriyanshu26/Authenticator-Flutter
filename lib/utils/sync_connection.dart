@@ -273,6 +273,7 @@ class SyncConnection {
                     'platform': (cred['platform'] ?? '').toString(),
                     'username': (cred['username'] ?? '').toString(),
                     'secretcode': (cred['secretcode'] ?? '').toString(),
+                    'createdAt': (cred['createdAt'] ?? '').toString(),
                   });
                 }
               }
@@ -305,26 +306,22 @@ class SyncConnection {
     Map<String, int> localDeletionLog,
     Map<String, int> remoteDeletionLog,
   ) {
-    final allDeletedIds = <String>{
-      ...localDeletionLog.keys,
-      ...remoteDeletionLog.keys,
-    };
-
     final merged = <String, Map<String, String>>{};
     for (final cred in localCreds) {
       final id = cred['id'];
-      if (id != null && !allDeletedIds.contains(id)) {
+      if (id != null) {
         merged[id] = Map.from(cred);
       }
     }
     for (final cred in remoteCreds) {
       final id = cred['id']?.toString();
-      if (id != null && !allDeletedIds.contains(id)) {
+      if (id != null) {
         merged[id] = {
           'id': id,
           'platform': (cred['platform'] ?? '').toString(),
           'username': (cred['username'] ?? '').toString(),
           'secretcode': (cred['secretcode'] ?? '').toString(),
+          'createdAt': (cred['createdAt'] ?? '').toString(),
         };
       }
     }

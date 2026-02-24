@@ -134,6 +134,13 @@ class HomeScreenState extends State<HomeScreen> {
     return FontAwesomeIcons.globe;
   }
 
+  String truncate(String text, {int maxLength = 30}) {
+    if (text.length > maxLength) {
+      return '${text.substring(0, maxLength-5)}...';
+    }
+    return text;
+  }
+
   Widget tile(int index, Map<String, String> item) {
     final user = item['username'] ?? '';
     final secret = item['secretcode']!;
@@ -233,10 +240,13 @@ class HomeScreenState extends State<HomeScreen> {
                     color: Colors.orange,
                   ),
             title: Text(
-              item['platform']!,
+              truncate(item['platform']!, maxLength: 20),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
-            subtitle: Text(user),
+            subtitle: Text(
+              truncate(user),
+              style: const TextStyle(fontSize: 12),
+            ),
             trailing: selectionMode
                 ? null
                 : SizedBox(
@@ -327,7 +337,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Filter totps based on search query
     final filteredTotps = totps.where((item) {
       final platform = item['platform']?.toLowerCase() ?? '';
       return platform.startsWith(searchQuery.toLowerCase());

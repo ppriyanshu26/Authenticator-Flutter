@@ -60,13 +60,14 @@ class SyncScreenState extends State<SyncScreen> {
         (success, mergedCredentials) async {
           if (!mounted) return;
           if (success && mergedCredentials != null) {
-            await TotpStore.saveAll(mergedCredentials);
-            if (!mounted) return;
             syncOccurred = true;
             final message = 'SYNC COMPLETE!';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(message, style: const TextStyle(color: Colors.green)),
+                content: Text(
+                  message,
+                  style: const TextStyle(color: Colors.green),
+                ),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -116,9 +117,11 @@ class SyncScreenState extends State<SyncScreen> {
     final passwordHash = await Storage.getStoredPassword();
     if (passwordHash == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No password set', style: TextStyle(color: Colors.red))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No password set', style: TextStyle(color: Colors.red)),
+        ),
+      );
       return;
     }
 
@@ -126,7 +129,12 @@ class SyncScreenState extends State<SyncScreen> {
     if (masterPassword == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot retrieve master password', style: TextStyle(color: Colors.red))),
+        const SnackBar(
+          content: Text(
+            'Cannot retrieve master password',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
       );
       return;
     }
@@ -154,19 +162,33 @@ class SyncScreenState extends State<SyncScreen> {
       final mergedCredentials =
           result['mergedCredentials'] as List<Map<String, String>>?;
       if (mergedCredentials != null) {
-        await TotpStore.saveAll(mergedCredentials);
+        final mergedDeletionLogDynamic =
+            result['mergedDeletionLog'] as Map<String, dynamic>?;
+        final mergedDeletionLog = <String, int>{};
+        if (mergedDeletionLogDynamic != null) {
+          mergedDeletionLogDynamic.forEach((k, v) {
+            mergedDeletionLog[k] = (v as num).toInt();
+          });
+        }
+
+        await TotpStore.saveAllAndMerge(mergedCredentials, mergedDeletionLog);
         syncOccurred = true;
       }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('SYNC COMPLETE!', style: TextStyle(color: Colors.green)),
+          content: Text(
+            'SYNC COMPLETE!',
+            style: TextStyle(color: Colors.green),
+          ),
           duration: Duration(seconds: 2),
         ),
       );
     } else {
       final reason = result['reason'] ?? 'unknown_error';
-      final message = reason == 'password_mismatch' ? 'PASSWORD MISMATCH' : 'Sync failed';
+      final message = reason == 'password_mismatch'
+          ? 'PASSWORD MISMATCH'
+          : 'Sync failed';
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

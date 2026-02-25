@@ -78,7 +78,12 @@ class ImportService {
         }
         final id = TotpStore.generateId(platform, username, secret);
         if (!existingIds.contains(id)) {
-          newCredentials.add({'id': id, 'platform': platform, 'username': username, 'secretcode': secret});
+          newCredentials.add({
+            'id': id,
+            'platform': platform,
+            'username': username,
+            'secretcode': secret,
+          });
         }
       }
 
@@ -99,6 +104,7 @@ class ImportService {
       return (false, 'Import failed: ${e.toString()}', <Map<String, String>>[]);
     }
   }
+
   static Future<(bool, String)> addImportedCredentials(
     List<Map<String, String>> credentials,
   ) async {
@@ -107,8 +113,20 @@ class ImportService {
         return (false, 'No credentials to add');
       }
 
+      final importTimestamp = TotpStore.getFormattedTimestamp();
+      final stampedCredentials = credentials
+          .map(
+            (c) => {
+              ...c,
+              'createdAt': (c['createdAt'] == null || c['createdAt']!.isEmpty)
+                  ? importTimestamp
+                  : c['createdAt']!,
+            },
+          )
+          .toList();
+
       final existing = await TotpStore.load();
-      final combined = [...existing, ...credentials];
+      final combined = [...existing, ...stampedCredentials];
       combined.sort(
         (a, b) => a['platform']!.toLowerCase().compareTo(
           b['platform']!.toLowerCase(),
@@ -116,6 +134,13 @@ class ImportService {
       );
 
       await TotpStore.saveAll(combined);
+
+      final importedIds = stampedCredentials
+          .map((c) => c['id'] ?? '')
+          .where((id) => id.isNotEmpty)
+          .toList();
+      await TotpStore.clearTombstones(importedIds);
+
       return (
         true,
         'Successfully imported ${credentials.length} credential(s)',

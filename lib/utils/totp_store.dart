@@ -16,7 +16,7 @@ class TotpStore {
     final now = DateTime.now();
     final day = now.day.toString().padLeft(2, '0');
     final month = now.month.toString().padLeft(2, '0');
-    final year = (now.year % 100).toString().padLeft(2, '0');
+    final year = now.year.toString().padLeft(4, '0');
     final hour = now.hour.toString().padLeft(2, '0');
     final minute = now.minute.toString().padLeft(2, '0');
     final second = now.second.toString().padLeft(2, '0');
@@ -29,10 +29,19 @@ class TotpStore {
       if (parts.length != 2) return 0;
       final datePart = parts[0];
       final timePart = parts[1];
-      if (datePart.length != 6 || timePart.length != 6) return 0;
+      if (timePart.length != 6) return 0;
       final day = int.parse(datePart.substring(0, 2));
       final month = int.parse(datePart.substring(2, 4));
-      final year = 2000 + int.parse(datePart.substring(4, 6));
+
+      int year;
+      if (datePart.length == 8) {
+        year = int.parse(datePart.substring(4, 8));
+      } else if (datePart.length == 6) {
+        year = 2000 + int.parse(datePart.substring(4, 6));
+      } else {
+        return 0;
+      }
+
       final hour = int.parse(timePart.substring(0, 2));
       final minute = int.parse(timePart.substring(2, 4));
       final second = int.parse(timePart.substring(4, 6));
@@ -55,7 +64,7 @@ class TotpStore {
     }
   }
 
-  static Future<void> _trackDeletedIds(List<String> deletedIds) async {
+  static Future<void> trackDeletedIds(List<String> deletedIds) async {
     if (deletedIds.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     final existing = await getDeletionLog();
@@ -66,7 +75,7 @@ class TotpStore {
     await prefs.setString(deletionLogKey, jsonEncode(existing));
   }
 
-  static Future<void> _removeFromDeletionLog(List<String> ids) async {
+  static Future<void> removeFromDeletionLog(List<String> ids) async {
     if (ids.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     final existing = await getDeletionLog();
@@ -74,6 +83,11 @@ class TotpStore {
       existing.remove(id);
     }
     await prefs.setString(deletionLogKey, jsonEncode(existing));
+  }
+
+  static Future<void> clearTombstones(Iterable<String> ids) async {
+    final list = ids.where((e) => e.isNotEmpty).toList();
+    await removeFromDeletionLog(list);
   }
 
   static Future<List<String>> getDeletedIds() async {
@@ -127,8 +141,9 @@ class TotpStore {
       }
     }
 
+    final id = generateId(platform, username, secret);
     final newItem = {
-      'id': generateId(platform, username, secret),
+      'id': id,
       'platform': platform,
       'username': username,
       'secretcode': secret,
@@ -145,6 +160,8 @@ class TotpStore {
     final encrypted = await Crypto.encryptAes(jsonEncode(list));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(storeKey, encrypted);
+    await removeFromDeletionLog([id]);
+
     return true;
   }
 
@@ -161,7 +178,7 @@ class TotpStore {
     final deletedIds = currentIds.difference(newIds).toList();
 
     if (deletedIds.isNotEmpty) {
-      await _trackDeletedIds(deletedIds);
+      await trackDeletedIds(deletedIds);
     }
 
     final encrypted = await Crypto.encryptAes(jsonEncode(items));
@@ -191,8 +208,8 @@ class TotpStore {
       existingLog[id] = timestamp;
     }
     for (final entry in remoteDeletedIds.entries) {
-      if (!existingLog.containsKey(entry.key) ||
-          entry.value < existingLog[entry.key]!) {
+      final localDeletedAt = existingLog[entry.key];
+      if (localDeletedAt == null || entry.value > localDeletedAt) {
         existingLog[entry.key] = entry.value;
       }
     }
@@ -213,7 +230,9 @@ class TotpStore {
       return false;
     }).toList();
 
-    await _removeFromDeletionLog(resurrectedIds);
+    for (final id in resurrectedIds) {
+      existingLog.remove(id);
+    }
 
     final encrypted = await Crypto.encryptAes(jsonEncode(filteredItems));
     final prefs = await SharedPreferences.getInstance();

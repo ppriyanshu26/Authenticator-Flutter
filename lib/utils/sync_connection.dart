@@ -99,8 +99,8 @@ class SyncConnection {
                 );
                 final mergedDeletionLog = <String, int>{...localDeletionLog};
                 for (final entry in remoteDeletionLog.entries) {
-                  if (!mergedDeletionLog.containsKey(entry.key) ||
-                      entry.value < mergedDeletionLog[entry.key]!) {
+                  final existing = mergedDeletionLog[entry.key];
+                  if (existing == null || entry.value > existing) {
                     mergedDeletionLog[entry.key] = entry.value;
                   }
                 }
@@ -124,6 +124,7 @@ class SyncConnection {
                 completer.complete({
                   'success': true,
                   'mergedCredentials': mergedCredentials,
+                  'mergedDeletionLog': mergedDeletionLog,
                 });
               }
             }
